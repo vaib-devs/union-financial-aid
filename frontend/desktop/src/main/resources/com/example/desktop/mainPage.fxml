@@ -6,6 +6,9 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.Region?>
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
@@ -35,6 +38,32 @@
         <padding>
             <Insets top="20" right="24" bottom="20" left="24"/>
         </padding>
+
+        <!-- Панель фильтров -->
+        <VBox styleClass="toolbar">
+
+            <HBox styleClass="toolbar-top" spacing="32" alignment="CENTER_LEFT">
+                <VBox spacing="6">
+                    <Label text="Волна" styleClass="field-label"/>
+                    <ComboBox fx:id="waveCombo" prefWidth="260"/>
+                </VBox>
+
+                <VBox spacing="4" alignment="CENTER_LEFT">
+                    <Label fx:id="periodLabel" styleClass="period"/>
+                    <Label fx:id="countLabel" styleClass="hint"/>
+                </VBox>
+
+                <!-- «Распорка»: занимает всё свободное место и отодвигает поиск вправо -->
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <TextField fx:id="searchField"
+                           promptText="Поиск по ФИО или номеру заявления"
+                           prefWidth="320"/>
+            </HBox>
+
+            <!-- Вкладки заполняются из Java -->
+            <HBox fx:id="statusTabs" styleClass="status-tabs"/>
+        </VBox>
 
     </VBox>
 
