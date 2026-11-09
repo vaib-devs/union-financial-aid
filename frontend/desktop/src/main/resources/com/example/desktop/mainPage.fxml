@@ -1,23 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.example.desktop.AppController"
       stylesheets="@style.css"
-      prefWidth="1100"
-      prefHeight="700">
+      prefWidth="1200"
+      prefHeight="760">
 
-    <!-- header -->
+    <!-- Шапка -->
     <HBox styleClass="header" spacing="30" alignment="CENTER_LEFT">
         <padding>
             <Insets top="12" right="24" bottom="12" left="24"/>
@@ -41,34 +44,61 @@
 
         <!-- Панель фильтров -->
         <VBox styleClass="toolbar">
-
             <HBox styleClass="toolbar-top" spacing="32" alignment="CENTER_LEFT">
                 <VBox spacing="6">
                     <Label text="Волна" styleClass="field-label"/>
                     <ComboBox fx:id="waveCombo" prefWidth="260"/>
                 </VBox>
 
-                <VBox spacing="4" alignment="CENTER_LEFT">
-                    <Label fx:id="periodLabel" styleClass="period"/>
-                    <Label fx:id="countLabel" styleClass="hint"/>
+                <VBox spacing="4" alignment="CENTER_LEFT" minWidth="-Infinity">
+                    <Label fx:id="periodLabel" styleClass="period" minWidth="-Infinity"/>
+                    <Label fx:id="countLabel" styleClass="hint" minWidth="-Infinity"/>
                 </VBox>
 
-                <!-- «Распорка»: занимает всё свободное место и отодвигает поиск вправо -->
                 <Region HBox.hgrow="ALWAYS"/>
 
-                <TextField fx:id="searchField"
-                           promptText="Поиск по ФИО или номеру заявления"
-                           prefWidth="320"/>
+                <StackPane>
+                    <TextField fx:id="searchField"
+                               styleClass="search-field"
+                               promptText="Поиск по ФИО или номеру заявления"
+                               prefWidth="320"/>
+                    <Region styleClass="search-icon"
+                            StackPane.alignment="CENTER_LEFT"
+                            mouseTransparent="true"
+                            pickOnBounds="false">
+                        <StackPane.margin>
+                            <Insets left="12"/>
+                        </StackPane.margin>
+                    </Region>
+                </StackPane>
             </HBox>
 
-            <!-- Вкладки заполняются из Java -->
             <HBox fx:id="statusTabs" styleClass="status-tabs"/>
         </VBox>
 
-        <padding>
-            <Insets top="20" right="24" bottom="20" left="24"/>
-        </padding>
+        <!-- Список заявлений -->
+        <VBox styleClass="list-card" VBox.vgrow="ALWAYS">
+            <HBox styleClass="list-header" alignment="CENTER_LEFT" spacing="10">
+                <Label fx:id="listTitle" styleClass="list-title"/>
+                <Label fx:id="listCount" styleClass="hint"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="По дате подачи: сначала новые" styleClass="hint"/>
+            </HBox>
 
+            <TableView fx:id="table" fixedCellSize="66" VBox.vgrow="ALWAYS">
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
+                <columns>
+                    <TableColumn fx:id="numberCol" text="Заявление" prefWidth="150" minWidth="130"/>
+                    <TableColumn fx:id="applicantCol" text="Заявитель" prefWidth="220" minWidth="170"/>
+                    <TableColumn fx:id="reasonCol" text="Основание помощи" prefWidth="250" minWidth="150"/>
+                    <TableColumn fx:id="docsCol" text="Документы" prefWidth="120" minWidth="110"/>
+                    <TableColumn fx:id="statusCol" text="Статус" prefWidth="140" minWidth="120"/>
+                    <TableColumn fx:id="commentCol" text="Комментарий" prefWidth="190" minWidth="140"/>
+                    <TableColumn fx:id="actionCol" text="Переход" prefWidth="110" minWidth="100"/>
+                </columns>
+            </TableView>
+        </VBox>
     </VBox>
-
 </VBox>

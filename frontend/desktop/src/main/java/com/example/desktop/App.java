@@ -16,6 +16,8 @@ public class App extends Application {
         Scene scene = new Scene(loader.load(), 400, 300);
         stage.setTitle("Заявления на материальную помощь");
         stage.setScene(scene);
+        stage.setMinWidth(1100);
+        stage.setMinHeight(650);
         stage.show();
     }
 
