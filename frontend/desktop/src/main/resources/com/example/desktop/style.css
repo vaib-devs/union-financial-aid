@@ -1,7 +1,7 @@
 .root {
-    -fx-font-family: "Inter";
+    -fx-font-family: "Inter", "Segoe UI", "Arial";
     -fx-font-size: 14px;
-    -fx-background-color: #F5F6F8;
+    -fx-background-color: #f5f6fa;
 }
 
 .header {
@@ -10,34 +10,55 @@
     -fx-border-width: 0 0 1 0;
 }
 
-.page-title {
-    -fx-font-size: 22px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #1f2340;
-}
-
 .logo {
-    -fx-font-size: 16px;
+    -fx-font-size: 22px;
     -fx-font-weight: bold;
     -fx-text-fill: #000000;
 }
 
+.page-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2340;
+}
+
+/* ---------- Панель фильтров ---------- */
+.toolbar {
+    -fx-background-color: white;
+}
+
+.toolbar-top {
+    -fx-padding: 16 24;
+}
+
 .field-label {
-    -fx-font-size: 13px;
+    -fx-font-size: 12px;
     -fx-text-fill: #666a80;
 }
 
+.period {
+    -fx-font-size: 14px;
+    -fx-text-fill: #1f2340;
+}
+
+.hint {
+    -fx-font-size: 12px;
+    -fx-text-fill: #8a8ea3;
+}
+
+/* ---------- Выпадающий список ---------- */
 .combo-box {
     -fx-background-color: white;
     -fx-background-insets: 0;
-    -fx-background-radius: 6;
+    -fx-background-radius: 4;
     -fx-border-color: #c9ccdc;
-    -fx-border-radius: 6;
+    -fx-border-radius: 4;
     -fx-border-width: 1;
     -fx-pref-height: 40px;
 }
 
 .combo-box:focused {
+    -fx-background-color: white;
     -fx-border-color: #4a55d6;
 }
 
@@ -49,17 +70,22 @@
 
 .combo-box .arrow-button {
     -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0 12 0 0;
 }
 
+/* Стрелка-«галочка» вместо треугольника */
 .combo-box .arrow-button .arrow {
     -fx-background-color: #666a80;
+    -fx-padding: 3 5 3 5;
+    -fx-shape: "M0,1 L1,0 L5,4 L9,0 L10,1 L5,6 Z";
 }
 
 .combo-box-popup .list-view {
     -fx-background-color: white;
-    -fx-background-radius: 6;
+    -fx-background-radius: 4;
     -fx-border-color: #c9ccdc;
-    -fx-border-radius: 6;
+    -fx-border-radius: 4;
 }
 
 .combo-box-popup .list-cell {
@@ -74,4 +100,79 @@
 .combo-box-popup .list-cell:filled:selected {
     -fx-background-color: #dfe2f8;
     -fx-text-fill: #1f2340;
+}
+
+/* ---------- Поиск ---------- */
+.search-field {
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+    -fx-border-color: #c9ccdc;
+    -fx-border-radius: 4;
+    -fx-padding: 10 12 10 38;
+    -fx-prompt-text-fill: #8a8ea3;
+}
+
+.search-field:focused {
+    -fx-background-color: white;
+    -fx-border-color: #4a55d6;
+}
+
+.search-icon {
+    -fx-background-color: #8a8ea3;
+    -fx-min-width: 16;
+    -fx-min-height: 16;
+    -fx-max-width: 16;
+    -fx-max-height: 16;
+    -fx-shape: "M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z";
+}
+
+/* ---------- Вкладки статусов ---------- */
+.status-tabs {
+    -fx-spacing: 24;
+    -fx-padding: 0 24;
+    -fx-border-color: #e1e3ee transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.status-tab {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 12 0 10 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-cursor: hand;
+}
+
+.status-tab:focused,
+.status-tab:hover,
+.status-tab:armed,
+.status-tab:selected,
+.status-tab:selected:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+
+.status-tab:selected {
+    -fx-border-color: transparent transparent #2f55a4 transparent;
+}
+
+.status-tab .tab-name {
+    -fx-font-size: 14px;
+    -fx-text-fill: #4b4f66;
+}
+
+.status-tab .tab-count {
+    -fx-font-size: 11px;
+    -fx-text-fill: #8a8ea3;
+}
+
+.status-tab:selected .tab-name {
+    -fx-text-fill: #2f55a4;
+    -fx-font-weight: bold;
+}
+
+.status-tab:selected .tab-count {
+    -fx-text-fill: #2f55a4;
 }
