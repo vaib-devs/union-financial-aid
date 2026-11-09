@@ -65,6 +65,10 @@
             <HBox fx:id="statusTabs" styleClass="status-tabs"/>
         </VBox>
 
+        <padding>
+            <Insets top="20" right="24" bottom="20" left="24"/>
+        </padding>
+
     </VBox>
 
 </VBox>
