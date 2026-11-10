@@ -312,3 +312,61 @@
 .badge-clarify  { -fx-background-color: #fff3dd; -fx-text-fill: #b26a00; }
 .badge-approved { -fx-background-color: #e6f4ea; -fx-text-fill: #2e7d4f; }
 .badge-rejected { -fx-background-color: #fdeaea; -fx-text-fill: #c0392b; }
+
+/* ---------- Итоги по волне ---------- */
+.summary-panel {
+    -fx-background-color: white;
+    -fx-border-color: #e1e3ee;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 14 24 16 24;
+    -fx-spacing: 12;
+}
+
+.summary-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2340;
+}
+
+.summary-card {
+    -fx-padding: 8 16;
+    -fx-background-color: #f5f6fa;
+    -fx-background-radius: 6;
+}
+
+.summary-value {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.summary-total { -fx-text-fill: #1f2340; }
+
+.summary-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666a80;
+}
+
+/* Цвета чисел совпадают с бейджами, но фон карточки остаётся светлым */
+.summary-value.badge-new      { -fx-background-color: transparent; -fx-text-fill: #2a2e45; }
+.summary-value.badge-review   { -fx-background-color: transparent; -fx-text-fill: #2f55a4; }
+.summary-value.badge-clarify  { -fx-background-color: transparent; -fx-text-fill: #b26a00; }
+.summary-value.badge-approved { -fx-background-color: transparent; -fx-text-fill: #2e7d4f; }
+.summary-value.badge-rejected { -fx-background-color: transparent; -fx-text-fill: #c0392b; }
+
+.primary-button {
+    -fx-background-color: #4a55d6;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-padding: 10 18;
+    -fx-cursor: hand;
+}
+
+.primary-button:hover {
+    -fx-background-color: #3a44c4;
+}
+
+.primary-button:armed {
+    -fx-background-color: #2f38a8;
+}
