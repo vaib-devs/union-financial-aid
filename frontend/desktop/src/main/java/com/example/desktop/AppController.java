@@ -43,6 +43,10 @@ public class AppController {
     @FXML private TableColumn<AidApplication, AidApplication> commentCol;
     @FXML private TableColumn<AidApplication, AidApplication> actionCol;
 
+    // --- итоги по волне ---
+    @FXML private Label summaryPeriod;
+    @FXML private HBox summaryCounts;
+
     private final ToggleGroup statusGroup = new ToggleGroup();
     private final Map<Status, Label> countLabels = new EnumMap<>(Status.class);
     private Map<Status, Integer> currentCounts;
@@ -207,7 +211,46 @@ public class AppController {
                 + plural(total, "заявление", "заявления", "заявлений")
                 + " в выбранной волне");
 
+        fillWaveSummary(wave);
         reloadApplications();
+    }
+
+    // ---------------- Итоги по волне ----------------
+
+    // Данные берутся из заглушки loadCounts() один раз при отрисовке,
+    // когда появится API — заменить на запрос к БД (см. #17)
+    private void fillWaveSummary(Wave wave) {
+        summaryPeriod.setText(wave.title() + " - " + wave.period());
+        summaryCounts.getChildren().clear();
+
+        summaryCounts.getChildren().add(summaryCard("Всего",
+                currentCounts.get(Status.ALL), "summary-total"));
+
+        for (Status status : Status.values()) {
+            if (status == Status.ALL) continue;
+            summaryCounts.getChildren().add(summaryCard(
+                    status.badge, currentCounts.get(status), status.cssClass));
+        }
+    }
+
+    private static VBox summaryCard(String title, int value, String colorClass) {
+        Label number = new Label(String.valueOf(value));
+        number.getStyleClass().addAll("summary-value", colorClass);
+
+        Label label = new Label(title);
+        label.getStyleClass().add("summary-label");
+
+        VBox card = new VBox(2, number, label);
+        card.getStyleClass().add("summary-card");
+        return card;
+    }
+
+    @FXML
+    private void onGeneralCheck() {
+        // TODO: запустить серию общей проверки, когда появится API (см. #14)
+        Wave wave = waveCombo.getValue();
+        System.out.println("Общая проверка по волне: "
+                + (wave != null ? wave.title() : "—"));
     }
 
     private void reloadApplications() {
