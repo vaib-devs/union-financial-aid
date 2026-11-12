@@ -1,11 +1,15 @@
 package com.example.desktop;
 
-/**
- * Класс заглушка пока нет аналога из бекенда
- */
-public record Wave(int id, String title, String period) {
+import java.time.LocalDate;
+
+public record Wave(
+        int id,
+        String title,
+        LocalDate from,
+        LocalDate to
+) {
     @Override
     public String toString() {
-        return title;
+        return from + " - " + to;
     }
 }
