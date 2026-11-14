@@ -17,9 +17,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class AppController {
@@ -34,14 +37,14 @@ public class AppController {
     // --- список заявлений ---
     @FXML private Label listTitle;
     @FXML private Label listCount;
-    @FXML private TableView<AidApplication> table;
-    @FXML private TableColumn<AidApplication, AidApplication> numberCol;
-    @FXML private TableColumn<AidApplication, AidApplication> applicantCol;
-    @FXML private TableColumn<AidApplication, AidApplication> reasonCol;
-    @FXML private TableColumn<AidApplication, AidApplication> docsCol;
-    @FXML private TableColumn<AidApplication, AidApplication> statusCol;
-    @FXML private TableColumn<AidApplication, AidApplication> commentCol;
-    @FXML private TableColumn<AidApplication, AidApplication> actionCol;
+    @FXML private TableView<Application> table;
+    @FXML private TableColumn<Application, Application> numberCol;
+    @FXML private TableColumn<Application, Application> applicantCol;
+    @FXML private TableColumn<Application, Application> reasonCol;
+    @FXML private TableColumn<Application, Application> docsCol;
+    @FXML private TableColumn<Application, Application> statusCol;
+    @FXML private TableColumn<Application, Application> commentCol;
+    @FXML private TableColumn<Application, Application> actionCol;
 
     // --- итоги по волне ---
     @FXML private Label summaryPeriod;
@@ -84,9 +87,10 @@ public class AppController {
         table.setPlaceholder(new Label("Заявлений не найдено"));
 
         column(numberCol, a -> {
-            Label number = new Label(a.number());
+            //TODO: оформить label используя волны
+            Label number = new Label("1");
             number.getStyleClass().add("app-number");
-            Label date = new Label(a.submittedAt());
+            Label date = new Label(a.getCreatedAt().toString());
             date.getStyleClass().add("cell-hint");
             return new VBox(3, number, date);
         });
@@ -104,12 +108,12 @@ public class AppController {
         reasonCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue()));
         reasonCol.setSortable(false);
         reasonCol.setCellFactory(tc -> {
-            TableCell<AidApplication, AidApplication> cell = new TableCell<>() {
+            TableCell<Application, Application> cell = new TableCell<>() {
                 @Override
-                protected void updateItem(AidApplication item, boolean empty) {
+                protected void updateItem(Application item, boolean empty) {
                     super.updateItem(item, empty);
                     setGraphic(null);
-                    setText(empty || item == null ? null : item.reason());
+                    setText(empty || item == null ? null : item.getReason().getDescription());
                 }
             };
             cell.setWrapText(true);
@@ -117,27 +121,28 @@ public class AppController {
             return cell;
         });
 
-        column(docsCol, a -> {
-            Region icon = new Region();
-            icon.getStyleClass().add("clip-icon");
-            Label text = new Label(a.files() + " "
-                    + plural(a.files(), "файл", "файла", "файлов"));
-            text.getStyleClass().add("cell-hint");
-            HBox box = new HBox(6, icon, text);
-            box.setAlignment(Pos.CENTER_LEFT);
-            return box;
-        });
+        //TODO: реализовать отображене количества прикреплённых файлов
+//        column(docsCol, a -> {
+//            Region icon = new Region();
+//            icon.getStyleClass().add("clip-icon");
+//            Label text = new Label(a.files() + " "
+//                    + plural(a.files(), "файл", "файла", "файлов"));
+//            text.getStyleClass().add("cell-hint");
+//            HBox box = new HBox(6, icon, text);
+//            box.setAlignment(Pos.CENTER_LEFT);
+//            return box;
+//        });
 
         column(statusCol, a -> {
-            Label badge = new Label(a.status().badge);
-            badge.getStyleClass().addAll("badge", a.status().cssClass);
+            Label badge = new Label(a.getStatus().badge);
+            badge.getStyleClass().addAll("badge", a.getStatus().cssClass);
             return badge;
         });
 
         column(commentCol, a -> {
-            Label comment = new Label(a.comment());
+            Label comment = new Label(a.getComment());
             comment.getStyleClass().add("cell-comment");
-            if (a.status() == Status.CLARIFY) {
+            if (a.getStatus() == Status.CLARIFY) {
                 comment.getStyleClass().add("cell-comment-warn");
             }
             return comment;
@@ -152,13 +157,13 @@ public class AppController {
     }
 
     // Каждая колонка получает всю строку целиком и сама решает, как её нарисовать
-    private static void column(TableColumn<AidApplication, AidApplication> col,
-                               Function<AidApplication, Node> render) {
+    private static void column(TableColumn<Application, Application> col,
+                               Function<Application, Node> render) {
         col.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue()));
         col.setSortable(false);
         col.setCellFactory(tc -> new TableCell<>() {
             @Override
-            protected void updateItem(AidApplication item, boolean empty) {
+            protected void updateItem(Application item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(null);
                 setGraphic(empty || item == null ? null : render.apply(item));
@@ -166,9 +171,9 @@ public class AppController {
         });
     }
 
-    private void openApplication(AidApplication application) {
+    private void openApplication(Application application) {
         // TODO: открыть страницу заявления
-        System.out.println("Открыть " + application.number());
+        System.out.println("Открыть " + application.getId());
     }
 
     // ---------------- Вкладки статусов ----------------
@@ -199,9 +204,9 @@ public class AppController {
     // ---------------- Загрузка и фильтрация ----------------
 
     private void onWaveSelected(Wave wave) {
-        periodLabel.setText("Приём заявлений: " + wave.period());
+        periodLabel.setText("Приём заявлений: " + wave);
 
-        currentCounts = loadCounts(wave);
+        currentCounts = loadCounts(loadApplications(wave));
         for (Status status : Status.values()) {
             countLabels.get(status).setText(String.valueOf(currentCounts.get(status)));
         }
@@ -220,7 +225,7 @@ public class AppController {
     // Данные берутся из заглушки loadCounts() один раз при отрисовке,
     // когда появится API — заменить на запрос к БД (см. #17)
     private void fillWaveSummary(Wave wave) {
-        summaryPeriod.setText(wave.title() + " - " + wave.period());
+        summaryPeriod.setText(wave.title() + " - " + wave);
         summaryCounts.getChildren().clear();
 
         summaryCounts.getChildren().add(summaryCard("Всего",
@@ -260,11 +265,13 @@ public class AppController {
         String query = searchField.getText() == null
                 ? "" : searchField.getText().trim().toLowerCase();
 
-        List<AidApplication> filtered = loadApplications(wave).stream()
-                .filter(a -> currentStatus == Status.ALL || a.status() == currentStatus)
+        List<Application> allApplications = loadApplications(wave);
+
+        List<Application> filtered = allApplications.stream()
+                .filter(a -> currentStatus == Status.ALL || a.getStatus() == currentStatus)
                 .filter(a -> query.isEmpty()
                         || a.applicant().toLowerCase().contains(query)
-                        || a.number().toLowerCase().contains(query))
+                        || a.Id().toLowerCase().contains(query))
                 .toList();
 
         table.setItems(FXCollections.observableArrayList(filtered));
@@ -288,41 +295,127 @@ public class AppController {
 
     private List<Wave> loadWaves() {
         return List.of(
-                new Wave(1, "2026-2027г. 1 семестр", "01.10–15.10.2026"),
-                new Wave(2, "2026-2027г. 2 семестр", "01.03–15.03.2027")
+                new Wave(
+                        1,
+                        "2026-2027г. 1 семестр",
+                        LocalDate.of(2026, 10, 1),
+                        LocalDate.of(2026, 10, 15)
+                ),
+                new Wave(
+                        2,
+                        "2026-2027г. 2 семестр",
+                        LocalDate.of(2027, 3, 1),
+                        LocalDate.of(2027, 3, 15)
+                ),
+                new Wave(
+                2,
+                "тест",
+                LocalDate.of(2028, 10, 6),
+                LocalDate.of(2029, 10, 7)
+                )
         );
     }
 
-    private Map<Status, Integer> loadCounts(Wave wave) {
+    private Map<Status, Integer> loadCounts(List<Application> applications) {
         Map<Status, Integer> counts = new EnumMap<>(Status.class);
-        if (wave.id() == 1) {
-            counts.put(Status.ALL, 24);
-            counts.put(Status.NEW, 6);
-            counts.put(Status.REVIEW, 8);
-            counts.put(Status.CLARIFY, 4);
-            counts.put(Status.APPROVED, 4);
-            counts.put(Status.REJECTED, 2);
-        } else {
-            for (Status s : Status.values()) counts.put(s, 0);
+
+        counts.put(Status.ALL, applications.size());
+
+        for (Status status : Status.values()) {
+            if (status != Status.ALL) {
+                counts.put(
+                        status,
+                        (int) applications.stream()
+                                .filter(a -> a.getStatus() == status)
+                                .count()
+                );
+            }
         }
+
         return counts;
     }
 
-    private List<AidApplication> loadApplications(Wave wave) {
-        if (wave.id() != 1) return List.of();
+    private List<Application> loadApplications(Wave wave) {
+        if (wave.id() != 1) {
+            return List.of();
+        }
+
         return List.of(
-                new AidApplication("МП-2026-01-25", "14.10.2026, 16:45", "Соколова Мария Андреевна", "ИЭФ", "ЭСБ-241", "Не получающий стипендию", 4, Status.NEW, "Проверка не начата"),
-                new AidApplication("МП-2026-01-24", "14.10.2026, 15:20", "Кузнецов Иван Дмитриевич", "ИЖТ", "УИТ-211", "Из неполной семьи (родитель-одиночка)", 6, Status.REVIEW, "Реквизиты — сверить"),
-                new AidApplication("МП-2026-01-23", "14.10.2026, 11:08", "Волкова Анна Олеговна", "ИЖТ", "ТУСк-312", "Воспитывающий ребёнка", 5, Status.NEW, "Проверка не начата"),
-                new AidApplication("МП-2026-01-22", "13.10.2026, 17:36", "Морозов Павел Игоревич", "ИСТИ", "САП-411", "Воспитывающий ребёнка", 3, Status.CLARIFY, "Ожидается справка о доходах"),
-                new AidApplication("МП-2026-01-21", "13.10.2026, 14:52", "Петрова Елена Викторовна", "ИЭФ", "ЭЭУ-211", "Из многодетной семьи", 5, Status.APPROVED, "Сверка завершена"),
-                new AidApplication("МП-2026-01-20", "13.10.2026, 12:10", "Орлов Никита Алексеевич", "ИЖТ", "ЦОД-111", "Участник военных действий", 4, Status.REVIEW, "Паспорт — сверить"),
-                new AidApplication("МП-2026-01-19", "13.10.2026, 09:24", "Новикова Дарья Романовна", "ИЖТ", "УИС-211", "Из неполной семьи (развод родителей)", 4, Status.NEW, "Проверка не начата"),
-                new AidApplication("МП-2026-01-18", "12.10.2026, 14:32", "Лебедев Артём Сергеевич", "ИЖТ", "УИТ-311", "Из многодетной семьи", 5, Status.REVIEW, "Паспорт и реквизиты — сверить"),
-                new AidApplication("МП-2026-01-17", "12.10.2026, 11:46", "Смирнова Полина Денисовна", "ИСТИ", "САП-311", "На диспансерном учёте с хроническими заболеваниями", 5, Status.CLARIFY, "Нужен читаемый документ"),
-                new AidApplication("МП-2026-01-16", "11.10.2026, 16:18", "Фёдоров Максим Андреевич", "ИЭФ", "ЭЭС-411", "Имеющий родителей инвалидов или пенсионеров", 4, Status.REJECTED, "Основание не подтверждено"),
-                new AidApplication("МП-2026-01-15", "11.10.2026, 10:35", "Козлова Софья Михайловна", "ИЖТ", "ТМ-212", "Воспитывающий ребёнка", 5, Status.APPROVED, "Сверка завершена"),
-                new AidApplication("МП-2026-01-14", "10.10.2026, 15:03", "Васильев Даниил Павлович", "ИМТК", "ОМН-271", "Из многодетной семьи", 5, Status.REVIEW, "Документ о льготе — сверить")
+                new Application(
+                        1L, 1L,
+                        "Мария", "Соколова", "Андреевна",
+                        LocalDate.of(2005, 3, 12),
+                        "+79990000001",
+                        "ЭСБ-241",
+                        "ИЭФ",
+                        "г. Москва, ул. Ленина, 1",
+                        "770100000001",
+                        "40817810000000000001",
+                        Reason.NO_SCHOLARSHIP,
+                        Status.NEW,
+                        OffsetDateTime.parse("2026-10-14T16:45:00+03:00"),
+                        "Проверка не начата"
+                ),
+                new Application(
+                        2L, 1L,
+                        "Иван", "Кузнецов", "Дмитриевич",
+                        LocalDate.of(2004, 8, 25),
+                        "+79990000002",
+                        "УИТ-211",
+                        "ИЖТ",
+                        "г. Москва, ул. Пушкина, 2",
+                        "770100000002",
+                        "40817810000000000002",
+                        Reason.SINGLE_PARENT_FAMILY,
+                        Status.REVIEW,
+                        OffsetDateTime.parse("2026-10-14T15:20:00+03:00"),
+                        "Реквизиты — сверить"
+                ),
+                new Application(
+                        3L, 1L,
+                        "Анна", "Волкова", "Олеговна",
+                        LocalDate.of(2003, 11, 7),
+                        "+79990000003",
+                        "ТУСк-312",
+                        "ИЖТ",
+                        "г. Москва, ул. Чехова, 3",
+                        "770100000003",
+                        "40817810000000000003",
+                        Reason.STUDENT_WITH_CHILD,
+                        Status.NEW,
+                        OffsetDateTime.parse("2026-10-14T11:08:00+03:00"),
+                        "Проверка не начата"
+                ),
+                new Application(
+                        4L, 1L,
+                        "Павел", "Морозов", "Игоревич",
+                        LocalDate.of(2002, 5, 18),
+                        "+79990000004",
+                        "САП-411",
+                        "ИСТИ",
+                        "г. Москва, ул. Гагарина, 4",
+                        "770100000004",
+                        "40817810000000000004",
+                        Reason.STUDENT_WITH_CHILD,
+                        Status.CLARIFY,
+                        OffsetDateTime.parse("2026-10-13T17:36:00+03:00"),
+                        "Ожидается справка о доходах"
+                ),
+                new Application(
+                        5L, 1L,
+                        "Елена", "Петрова", "Викторовна",
+                        LocalDate.of(2004, 1, 22),
+                        "+79990000005",
+                        "ЭЭУ-211",
+                        "ИЭФ",
+                        "г. Москва, ул. Мира, 5",
+                        "770100000005",
+                        "40817810000000000005",
+                        Reason.LARGE_FAMILY,
+                        Status.APPROVED,
+                        OffsetDateTime.parse("2026-10-13T14:52:00+03:00"),
+                        "Сверка завершена"
+                )
         );
     }
 }
