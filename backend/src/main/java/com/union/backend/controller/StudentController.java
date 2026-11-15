@@ -3,8 +3,7 @@ package com.union.backend.controller;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.union.backend.entity.Student;
@@ -26,6 +25,14 @@ public class StudentController {
         List<Student> allStudents = studentService.getAllStudents();
         return allStudents;
     }
+
+    @GetMapping("/api/students/{studentNumber}")
+    public Student findByStudentNumber(@PathVariable String studentNumber){
+        return studentService.findByStudentNumber(studentNumber);
+    }
+
+    
+
 
     
 }

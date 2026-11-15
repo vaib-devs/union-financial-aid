@@ -1,7 +1,6 @@
 package com.union.backend.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -22,23 +21,12 @@ public class StudentServiceImpl implements StudentService {
         return allStudents;
     }
 
-    @Override
-    public Optional<Student> findByStudentNumber(String studentNumber) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'findByStudentNumber'");
-    }
 
-    // @Override
-    // public Optional<Student> findByStudentNumber(String studentNumber) {
-    //     Optional<Student> studentOptional = studentRepository.findByStudentNumber(studentNumber);
-    //     public Student student = null;
-    //     if (studentOptional.isPresent()){
-    //         student = studentOptional.get();
-    //     }
-    //     return student;
-        
-        
-        
-    // }
+
+    @Override
+    public Student findByStudentNumber(String studentNumber) {
+        Student student = studentRepository.findByStudentNumber(studentNumber).orElseThrow(() -> new IllegalArgumentException("Студент не найден"));
+        return student;
+    }
 
 }

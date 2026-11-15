@@ -1,5 +1,11 @@
 package com.union.backend.dao;
 
-public class ApplicationRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.union.backend.entity.Application;
+
+public interface ApplicationRepository extends JpaRepository<Application,Long> {
+
+    
 
 }

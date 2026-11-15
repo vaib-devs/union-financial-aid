@@ -36,6 +36,8 @@ public class Student {
     private Boolean isEnrolled;
     @Column(name = "is_union_member",nullable = false)
     private Boolean isUnionMember;
+    @Column(name = "union_card_number", unique = true, length = 30)
+    private String unionCardNumber;
     public Student() {
     }
     public Long getId() {
@@ -100,6 +102,13 @@ public class Student {
     }
     public void setIsUnionMember(Boolean isUnionMember) {
         this.isUnionMember = isUnionMember;
+    }
+    public String getUnionCardNumber() {
+    return unionCardNumber;
+}
+
+    public void setUnionCardNumber(String unionCardNumber) {
+        this.unionCardNumber = unionCardNumber;
     }
    
     

@@ -49,7 +49,6 @@ public class Application {
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-
     @ManyToOne()
     @JoinColumn(name = "period_id")
     private ApplicationPeriod applicationPeriod;
@@ -62,6 +61,28 @@ public class Application {
 
     public Application() {
     }
+    
+
+    public Application(Long id, String firstName, String lastName, String middleName, LocalDate birthDate, String phone,
+            String studentNumber, String institute, String groupName, String registrationAddress, String inn,
+            String bankAccount, String reason, String status, LocalDateTime createdAt) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.middleName = middleName;
+        this.birthDate = birthDate;
+        this.phone = phone;
+        this.studentNumber = studentNumber;
+        this.institute = institute;
+        this.groupName = groupName;
+        this.registrationAddress = registrationAddress;
+        this.inn = inn;
+        this.bankAccount = bankAccount;
+        this.reason = reason;
+        this.status = status;
+        this.createdAt = createdAt;
+    }
+
 
     public Long getId() {
         return id;
