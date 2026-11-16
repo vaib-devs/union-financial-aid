@@ -1,0 +1,284 @@
+/* Стили страницы проверки заявления. Подключается вместе с style.css (см. reviewPage.fxml). */
+
+/* ---------- Прокрутка страницы ---------- */
+.page-scroll,
+.page-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+/* ---------- Заголовок страницы ---------- */
+.crumb {
+    -fx-font-size: 12px;
+    -fx-text-fill: #8a8ea3;
+}
+
+.crumb-link {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666a80;
+    -fx-cursor: hand;
+}
+
+.crumb-link:hover {
+    -fx-underline: true;
+}
+
+.crumb-current {
+    -fx-font-size: 12px;
+    -fx-text-fill: #1f2340;
+}
+
+.review-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2340;
+}
+
+.review-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #666a80;
+}
+
+/* ---------- Карточки ---------- */
+.card {
+    -fx-background-color: white;
+    -fx-border-color: #e1e3ee;
+    -fx-border-width: 1;
+}
+
+.card-header {
+    -fx-padding: 14 20;
+    -fx-border-color: transparent transparent #e1e3ee transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.card-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2340;
+}
+
+/* ---------- Разделы заявления ---------- */
+.section {
+    -fx-padding: 16 20 18 20;
+    -fx-spacing: 12;
+    -fx-border-color: transparent transparent #e1e3ee transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.section-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2340;
+}
+
+.section-state {
+    -fx-font-size: 12px;
+}
+
+.state-warn { -fx-text-fill: #b26a00; }
+.state-ok   { -fx-text-fill: #2e7d4f; }
+
+.value-box {
+    -fx-background-color: white;
+    -fx-border-color: #c9ccdc;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 9 12;
+    -fx-min-height: 38;
+    -fx-text-fill: #1f2340;
+}
+
+.value-flag {
+    -fx-background-color: #fff6e0;
+    -fx-border-color: #e8b84a;
+}
+
+/* Рамка подтверждения внутри раздела */
+.verify-box {
+    -fx-padding: 12 14;
+    -fx-background-radius: 3;
+}
+
+.verify-warn    { -fx-background-color: #fff6e0; }
+.verify-ok      { -fx-background-color: #e6f4ea; }
+.verify-neutral { -fx-background-color: #f5f6fa; }
+
+.verify-message {
+    -fx-font-size: 13px;
+}
+
+.verify-warn .verify-message    { -fx-text-fill: #7a5200; }
+.verify-ok .verify-message      { -fx-text-fill: #2e7d4f; }
+.verify-neutral .verify-message { -fx-text-fill: #666a80; }
+
+.doc-link {
+    -fx-font-size: 13px;
+    -fx-text-fill: #2f55a4;
+    -fx-cursor: hand;
+}
+
+.doc-link:hover {
+    -fx-underline: true;
+}
+
+/* ---------- Кнопки ---------- */
+.secondary-button,
+.confirm-button,
+.zoom-button {
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-border-color: #c9ccdc;
+    -fx-border-radius: 3;
+    -fx-text-fill: #1f2340;
+    -fx-font-size: 13px;
+    -fx-padding: 8 14;
+    -fx-cursor: hand;
+}
+
+.secondary-button:hover,
+.confirm-button:hover,
+.zoom-button:hover {
+    -fx-background-color: #f5f6fa;
+}
+
+.secondary-button:armed,
+.confirm-button:armed,
+.zoom-button:armed {
+    -fx-background-color: #eceef3;
+}
+
+.confirm-button {
+    -fx-padding: 6 12;
+}
+
+.zoom-button {
+    -fx-padding: 3 10;
+    -fx-font-size: 14px;
+}
+
+.primary-button:disabled,
+.secondary-button:disabled {
+    -fx-opacity: 0.45;
+}
+
+/* ---------- Плитки документов ---------- */
+.doc-tiles {
+    -fx-padding: 14 20;
+}
+
+.doc-tile {
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-border-color: #c9ccdc;
+    -fx-border-radius: 3;
+    -fx-padding: 10 14;
+    -fx-cursor: hand;
+}
+
+.doc-tile:hover {
+    -fx-background-color: #f8f9fd;
+}
+
+.doc-tile:selected,
+.doc-tile:selected:hover,
+.doc-tile:selected:focused {
+    -fx-background-color: #e8f0fe;
+    -fx-border-color: #4a55d6;
+}
+
+.doc-tile-title {
+    -fx-font-size: 14px;
+    -fx-text-fill: #1f2340;
+}
+
+.doc-tile:selected .doc-tile-title {
+    -fx-text-fill: #2f55a4;
+    -fx-font-weight: bold;
+}
+
+.doc-tile-icon {
+    -fx-font-size: 15px;
+}
+
+.icon-ok   { -fx-text-fill: #2e7d4f; }
+.icon-warn { -fx-text-fill: #c98a00; }
+
+/* ---------- Просмотр документа ---------- */
+.viewer-bar {
+    -fx-padding: 10 20;
+    -fx-border-color: #e1e3ee transparent #e1e3ee transparent;
+    -fx-border-width: 1 0 1 0;
+}
+
+.viewer,
+.viewer > .viewport {
+    -fx-background: #e9ecf1;
+    -fx-background-color: #e9ecf1;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.viewer-content {
+    -fx-background-color: #e9ecf1;
+    -fx-padding: 20;
+    -fx-spacing: 16;
+}
+
+.doc-image {
+    -fx-effect: dropshadow(gaussian, rgba(31, 35, 64, 0.18), 8, 0, 0, 2);
+}
+
+/* ---------- Прогресс сверки ---------- */
+.progress-footer {
+    -fx-padding: 12 20 16 20;
+    -fx-spacing: 8;
+    -fx-border-color: #e1e3ee transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.progress-seg {
+    -fx-min-height: 3;
+    -fx-pref-height: 3;
+    -fx-max-height: 3;
+}
+
+.progress-done { -fx-background-color: #2f55a4; }
+.progress-todo { -fx-background-color: #dfe2ea; }
+
+/* ---------- Нижняя панель ---------- */
+.bottom-bar {
+    -fx-background-color: white;
+    -fx-padding: 14 24 16 24;
+    -fx-border-color: #e1e3ee transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.text-area {
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-border-color: #c9ccdc;
+    -fx-border-radius: 3;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.text-area .scroll-pane,
+.text-area .viewport,
+.text-area .content {
+    -fx-background-color: transparent;
+}
+
+.text-area:focused {
+    -fx-border-color: #4a55d6;
+}
+
+/* Комментарий обязателен (уточнение/отказ), а поле пустое */
+.text-area.invalid,
+.text-area.invalid:focused {
+    -fx-border-color: #c0392b;
+}

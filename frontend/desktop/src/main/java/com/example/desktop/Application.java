@@ -200,4 +200,8 @@ public class Application {
     public String Id() {
         return null;
     }
+
+    public String number() {
+        return String.format("МП-%d-%04d", createdAt.getYear(), id);
+    }
 }

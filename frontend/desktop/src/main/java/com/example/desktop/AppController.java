@@ -87,8 +87,7 @@ public class AppController {
         table.setPlaceholder(new Label("Заявлений не найдено"));
 
         column(numberCol, a -> {
-            //TODO: оформить label используя волны
-            Label number = new Label("1");
+            Label number = new Label(a.number());
             number.getStyleClass().add("app-number");
             Label date = new Label(a.getCreatedAt().toString());
             date.getStyleClass().add("cell-hint");
@@ -173,7 +172,7 @@ public class AppController {
 
     private void openApplication(Application application) {
         // TODO: открыть страницу заявления
-        System.out.println("Открыть " + application.getId());
+        System.out.println("Открыть " + application.number());
     }
 
     // ---------------- Вкладки статусов ----------------
@@ -271,7 +270,7 @@ public class AppController {
                 .filter(a -> currentStatus == Status.ALL || a.getStatus() == currentStatus)
                 .filter(a -> query.isEmpty()
                         || a.applicant().toLowerCase().contains(query)
-                        || a.Id().toLowerCase().contains(query))
+                        || a.number().toLowerCase().contains(query))
                 .toList();
 
         table.setItems(FXCollections.observableArrayList(filtered));
