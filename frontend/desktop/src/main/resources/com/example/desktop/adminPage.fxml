@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.desktop.AdminController"
+      stylesheets="@style.css"
+      prefWidth="1200"
+      prefHeight="760">
+
+    <!-- Шапка -->
+    <HBox styleClass="header" spacing="30" alignment="CENTER_LEFT">
+        <padding>
+            <Insets top="12" right="24" bottom="12" left="24"/>
+        </padding>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <ImageView fitHeight="40" preserveRatio="true">
+                <Image url="@logo-small.png" requestedHeight="80" preserveRatio="true" smooth="true"/>
+            </ImageView>
+            <Label text="Профсоюз · Помощь" styleClass="logo"/>
+        </HBox>
+
+        <Label text="Администрирование" styleClass="page-title"/>
+    </HBox>
+
+    <!-- Основное содержимое -->
+    <VBox spacing="16" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets top="20" right="24" bottom="20" left="24"/>
+        </padding>
+
+        <!-- Создание волны -->
+        <VBox styleClass="admin-card">
+            <Label text="Создать волну матпомощи" styleClass="section-title"/>
+
+            <HBox spacing="16" alignment="CENTER_LEFT">
+                <padding>
+                    <Insets top="12" right="0" bottom="0" left="0"/>
+                </padding>
+
+                <VBox spacing="6">
+                    <Label text="Название волны" styleClass="field-label"/>
+                    <TextField fx:id="waveTitleField"
+                               promptText="Например: 2026-2027г. 3 семестр"
+                               prefWidth="280"/>
+                </VBox>
+
+                <VBox spacing="6">
+                    <Label text="Начало приёма" styleClass="field-label"/>
+                    <DatePicker fx:id="waveFromPicker" prefWidth="160"/>
+                </VBox>
+
+                <VBox spacing="6">
+                    <Label text="Конец приёма" styleClass="field-label"/>
+                    <DatePicker fx:id="waveToPicker" prefWidth="160"/>
+                </VBox>
+
+                <Button text="Создать волну"
+                        styleClass="primary-button"
+                        onAction="#onCreateWave"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button text="На главную"
+                        styleClass="secondary-button"
+                        onAction="#goToMain"/>
+            </HBox>
+
+            <Label fx:id="createStatusLabel" styleClass="status-label"/>
+        </VBox>
+
+        <!-- Список волн -->
+        <VBox styleClass="admin-card" VBox.vgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Волны" styleClass="section-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Количество заявлений по заглушкам" styleClass="hint"/>
+            </HBox>
+
+            <TableView fx:id="wavesTable" fixedCellSize="48" VBox.vgrow="ALWAYS">
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
+                <columns>
+                    <TableColumn fx:id="waveNameCol" text="Название" prefWidth="420" minWidth="220"/>
+                    <TableColumn fx:id="wavePeriodCol" text="Период приёма" prefWidth="320" minWidth="180"/>
+                    <TableColumn fx:id="waveApplicationsCol" text="Заявлений" prefWidth="160" minWidth="120"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Выгрузка по волне -->
+        <VBox styleClass="admin-card">
+            <Label text="Выгрузка данных по волне" styleClass="section-title"/>
+
+            <HBox spacing="16" alignment="CENTER_LEFT">
+                <padding>
+                    <Insets top="12" right="0" bottom="0" left="0"/>
+                </padding>
+
+                <VBox spacing="6">
+                    <Label text="Волна" styleClass="field-label"/>
+                    <ComboBox fx:id="exportWaveCombo" prefWidth="280"/>
+                </VBox>
+
+                <VBox spacing="6">
+                    <Label text="Формат" styleClass="field-label"/>
+                    <ComboBox fx:id="exportFormatCombo" prefWidth="160"/>
+                </VBox>
+
+                <Button text="Выгрузить"
+                        styleClass="primary-button"
+                        onAction="#onExport"/>
+            </HBox>
+
+            <Label fx:id="exportStatusLabel" styleClass="status-label"/>
+        </VBox>
+    </VBox>
+</VBox>

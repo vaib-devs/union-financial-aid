@@ -17,8 +17,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -77,8 +75,20 @@ public class AppController {
             }
         });
 
-        waveCombo.setItems(FXCollections.observableArrayList(loadWaves()));
+        waveCombo.setItems(FXCollections.observableArrayList(WaveStore.get().loadWaves()));
         waveCombo.getSelectionModel().selectFirst();
+    }
+
+    // ---------------- Навигация ----------------
+
+    @FXML
+    private void goToAdmin() throws java.io.IOException {
+        javafx.stage.Stage stage = (javafx.stage.Stage) waveCombo.getScene().getWindow();
+        javafx.fxml.FXMLLoader loader =
+                new javafx.fxml.FXMLLoader(getClass().getResource("adminPage.fxml"));
+        stage.setScene(new javafx.scene.Scene(loader.load(), 1200, 760));
+        stage.setMinWidth(1100);
+        stage.setMinHeight(650);
     }
 
     // ---------------- Таблица ----------------
@@ -206,7 +216,7 @@ public class AppController {
     private void onWaveSelected(Wave wave) {
         periodLabel.setText("Приём заявлений: " + wave);
 
-        currentCounts = loadCounts(loadApplications(wave));
+        currentCounts = loadCounts(WaveStore.get().loadApplications(wave));
         for (Status status : Status.values()) {
             countLabels.get(status).setText(String.valueOf(currentCounts.get(status)));
         }
@@ -265,7 +275,7 @@ public class AppController {
         String query = searchField.getText() == null
                 ? "" : searchField.getText().trim().toLowerCase();
 
-        List<Application> allApplications = loadApplications(wave);
+        List<Application> allApplications = WaveStore.get().loadApplications(wave);
 
         List<Application> filtered = allApplications.stream()
                 .filter(a -> currentStatus == Status.ALL || a.getStatus() == currentStatus)
@@ -291,30 +301,8 @@ public class AppController {
     }
 
     // ---------------- Заглушки вместо бэкенда ----------------
-    // TODO: подвязать данные из бэкенда, когда он будет готов
-
-    private List<Wave> loadWaves() {
-        return List.of(
-                new Wave(
-                        1,
-                        "2026-2027г. 1 семестр",
-                        LocalDate.of(2026, 10, 1),
-                        LocalDate.of(2026, 10, 15)
-                ),
-                new Wave(
-                        2,
-                        "2026-2027г. 2 семестр",
-                        LocalDate.of(2027, 3, 1),
-                        LocalDate.of(2027, 3, 15)
-                ),
-                new Wave(
-                2,
-                "тест",
-                LocalDate.of(2028, 10, 6),
-                LocalDate.of(2029, 10, 7)
-                )
-        );
-    }
+    // TODO: подвязать данные из бэкенда, когда он будет готов.
+    // Данные переехали в WaveStore — общее хранилище для всех страниц.
 
     private Map<Status, Integer> loadCounts(List<Application> applications) {
         Map<Status, Integer> counts = new EnumMap<>(Status.class);
@@ -333,89 +321,5 @@ public class AppController {
         }
 
         return counts;
-    }
-
-    private List<Application> loadApplications(Wave wave) {
-        if (wave.id() != 1) {
-            return List.of();
-        }
-
-        return List.of(
-                new Application(
-                        1L, 1L,
-                        "Мария", "Соколова", "Андреевна",
-                        LocalDate.of(2005, 3, 12),
-                        "+79990000001",
-                        "ЭСБ-241",
-                        "ИЭФ",
-                        "г. Москва, ул. Ленина, 1",
-                        "770100000001",
-                        "40817810000000000001",
-                        Reason.NO_SCHOLARSHIP,
-                        Status.NEW,
-                        OffsetDateTime.parse("2026-10-14T16:45:00+03:00"),
-                        "Проверка не начата"
-                ),
-                new Application(
-                        2L, 1L,
-                        "Иван", "Кузнецов", "Дмитриевич",
-                        LocalDate.of(2004, 8, 25),
-                        "+79990000002",
-                        "УИТ-211",
-                        "ИЖТ",
-                        "г. Москва, ул. Пушкина, 2",
-                        "770100000002",
-                        "40817810000000000002",
-                        Reason.SINGLE_PARENT_FAMILY,
-                        Status.REVIEW,
-                        OffsetDateTime.parse("2026-10-14T15:20:00+03:00"),
-                        "Реквизиты — сверить"
-                ),
-                new Application(
-                        3L, 1L,
-                        "Анна", "Волкова", "Олеговна",
-                        LocalDate.of(2003, 11, 7),
-                        "+79990000003",
-                        "ТУСк-312",
-                        "ИЖТ",
-                        "г. Москва, ул. Чехова, 3",
-                        "770100000003",
-                        "40817810000000000003",
-                        Reason.STUDENT_WITH_CHILD,
-                        Status.NEW,
-                        OffsetDateTime.parse("2026-10-14T11:08:00+03:00"),
-                        "Проверка не начата"
-                ),
-                new Application(
-                        4L, 1L,
-                        "Павел", "Морозов", "Игоревич",
-                        LocalDate.of(2002, 5, 18),
-                        "+79990000004",
-                        "САП-411",
-                        "ИСТИ",
-                        "г. Москва, ул. Гагарина, 4",
-                        "770100000004",
-                        "40817810000000000004",
-                        Reason.STUDENT_WITH_CHILD,
-                        Status.CLARIFY,
-                        OffsetDateTime.parse("2026-10-13T17:36:00+03:00"),
-                        "Ожидается справка о доходах"
-                ),
-                new Application(
-                        5L, 1L,
-                        "Елена", "Петрова", "Викторовна",
-                        LocalDate.of(2004, 1, 22),
-                        "+79990000005",
-                        "ЭЭУ-211",
-                        "ИЭФ",
-                        "г. Москва, ул. Мира, 5",
-                        "770100000005",
-                        "40817810000000000005",
-                        Reason.LARGE_FAMILY,
-                        Status.APPROVED,
-                        OffsetDateTime.parse("2026-10-13T14:52:00+03:00"),
-                        "Сверка завершена"
-                )
-        );
     }
 }
