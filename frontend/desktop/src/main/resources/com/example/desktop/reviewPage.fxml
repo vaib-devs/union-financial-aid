@@ -22,7 +22,7 @@
 
     <stylesheets>
         <URL value="@style.css"/>
-        <URL value="@../../../../../../../../../../Загрузки/src/main/resources/com/example/desktop/review.css"/>
+        <URL value="@review.css"/>
     </stylesheets>
 
     <!-- Шапка -->
