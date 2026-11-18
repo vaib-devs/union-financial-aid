@@ -710,6 +710,3 @@ $RECYCLE.BIN/
 .idea/
 
 !frontend/desktop/src/main/resources/**/*.css
-### Project ###
-# HTML-макеты страниц в docs нужны для импорта в Figma
-!docs/*.html
