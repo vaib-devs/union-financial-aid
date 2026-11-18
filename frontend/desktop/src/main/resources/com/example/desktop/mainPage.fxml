@@ -38,7 +38,7 @@
 
         <Region HBox.hgrow="ALWAYS"/>
 
-        <Button text="Админ"
+        <Button text="Управление"
                 styleClass="secondary-button"
                 onAction="#goToAdmin"/>
     </HBox>

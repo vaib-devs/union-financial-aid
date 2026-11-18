@@ -128,4 +128,16 @@ public final class WaveStore {
         waves.add(wave);
         return wave;
     }
+
+    /**
+     * Удаляет волну вместе с её заявлениями (в заглушке они связаны по periodId).
+     * Возвращает true, если волна нашлась и удалена.
+     */
+    public boolean removeWave(Wave wave) {
+        if (wave == null || !waves.removeIf(w -> w.id() == wave.id())) {
+            return false;
+        }
+        applications.removeIf(a -> a.getPeriodI() == wave.id());
+        return true;
+    }
 }

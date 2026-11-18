@@ -22,7 +22,7 @@
       prefHeight="760">
 
     <!-- Шапка -->
-    <HBox styleClass="header" spacing="30" alignment="CENTER_LEFT">
+    <HBox styleClass="header" spacing="40" alignment="BASELINE_LEFT">
         <padding>
             <Insets top="12" right="24" bottom="12" left="24"/>
         </padding>
@@ -34,7 +34,7 @@
             <Label text="Профсоюз · Помощь" styleClass="logo"/>
         </HBox>
 
-        <Label text="Администрирование" styleClass="page-title"/>
+        <Label text="Управление" styleClass="page-title"/>
     </HBox>
 
     <!-- Основное содержимое -->
@@ -96,9 +96,10 @@
                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                 </columnResizePolicy>
                 <columns>
-                    <TableColumn fx:id="waveNameCol" text="Название" prefWidth="420" minWidth="220"/>
-                    <TableColumn fx:id="wavePeriodCol" text="Период приёма" prefWidth="320" minWidth="180"/>
-                    <TableColumn fx:id="waveApplicationsCol" text="Заявлений" prefWidth="160" minWidth="120"/>
+                    <TableColumn fx:id="waveNameCol" text="Название" prefWidth="380" minWidth="200"/>
+                    <TableColumn fx:id="wavePeriodCol" text="Период приёма" prefWidth="300" minWidth="170"/>
+                    <TableColumn fx:id="waveApplicationsCol" text="Заявлений" prefWidth="130" minWidth="100"/>
+                    <TableColumn fx:id="waveActionCol" text="Действие" prefWidth="110" minWidth="90"/>
                 </columns>
             </TableView>
         </VBox>

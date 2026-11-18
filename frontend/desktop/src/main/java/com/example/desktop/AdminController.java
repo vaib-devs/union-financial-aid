@@ -7,6 +7,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableCell;
@@ -37,6 +39,7 @@ public class AdminController {
     @FXML private TableColumn<WaveRow, String> waveNameCol;
     @FXML private TableColumn<WaveRow, String> wavePeriodCol;
     @FXML private TableColumn<WaveRow, Integer> waveApplicationsCol;
+    @FXML private TableColumn<WaveRow, WaveRow> waveActionCol;
 
     // --- выгрузка ---
     @FXML private ComboBox<Wave> exportWaveCombo;
@@ -137,6 +140,10 @@ public class AdminController {
         Stage stage = (Stage) exportWaveCombo.getScene().getWindow();
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Выгрузка по волне");
+        File downloads = new File(System.getProperty("user.home"), "Downloads");
+        if (downloads.isDirectory()) {
+            chooser.setInitialDirectory(downloads);
+        }
         chooser.setInitialFileName("выгрузка - " + wave.title()
                 + (format == ExportFormat.CSV ? ".csv" : ".xlsx"));
         File file = chooser.showSaveDialog(stage);
@@ -190,6 +197,35 @@ public class AdminController {
             protected void updateItem(Integer item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : String.valueOf(item));
+            }
+        });
+
+        waveActionCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue()));
+        waveActionCol.setSortable(false);
+        waveActionCol.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(WaveRow item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                    return;
+                }
+                Label delete = new Label("Удалить");
+                delete.getStyleClass().add("delete-link");
+                delete.setOnMouseClicked(e -> confirmWaveDeletion(item.wave()));
+                setGraphic(delete);
+            }
+        });
+    }
+
+    private void confirmWaveDeletion(Wave wave) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Удаление волны");
+        alert.setHeaderText("Удалить волну «" + wave.title() + "»?");
+        alert.setContentText("Заявления этой волны также будут удалены. Действие нельзя отменить.");
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK && WaveStore.get().removeWave(wave)) {
+                refreshData();
             }
         });
     }
