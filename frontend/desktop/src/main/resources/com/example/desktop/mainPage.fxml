@@ -35,6 +35,12 @@
         </HBox>
 
         <Label text="Заявления на материальную помощь" styleClass="page-title"/>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <Button text="Управление"
+                styleClass="secondary-button"
+                onAction="#goToAdmin"/>
     </HBox>
 
     <!-- Основное содержимое -->

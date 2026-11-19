@@ -291,6 +291,16 @@
     -fx-underline: true;
 }
 
+.delete-link {
+    -fx-font-size: 13px;
+    -fx-text-fill: #c0392b;
+    -fx-cursor: hand;
+}
+
+.delete-link:hover {
+    -fx-underline: true;
+}
+
 .clip-icon {
     -fx-background-color: #8a8ea3;
     -fx-min-width: 14;
@@ -360,6 +370,7 @@
     -fx-font-weight: bold;
     -fx-background-radius: 4;
     -fx-padding: 10 18;
+    -fx-alignment: CENTER;
     -fx-cursor: hand;
 }
 
@@ -369,4 +380,111 @@
 
 .primary-button:armed {
     -fx-background-color: #2f38a8;
+}
+/* ---------- Админ-страница ---------- */
+.admin-card {
+    -fx-background-color: white;
+    -fx-border-color: #e1e3ee;
+    -fx-border-width: 1;
+    -fx-padding: 16 20;
+    -fx-spacing: 4;
+}
+
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2340;
+}
+
+.status-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #2e7d4f;
+    -fx-padding: 8 0 0 0;
+}
+
+/* Синяя кнопка без заливки — для навигации ("Админ", "На главную") */
+.secondary-button {
+    -fx-background-color: white;
+    -fx-border-color: #4a55d6;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-text-fill: #4a55d6;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-alignment: CENTER;
+    -fx-cursor: hand;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #eef0fb;
+}
+
+.secondary-button:armed {
+    -fx-background-color: #dfe2f8;
+}
+
+/* DatePicker: рамка и фон на композитном контроле, поле и значок внутри */
+.date-picker {
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+    -fx-border-color: #c9ccdc;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+    -fx-padding: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.date-picker:focused {
+    -fx-border-color: #4a55d6;
+}
+
+.date-picker > .text-field {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 8 12;
+    -fx-prompt-text-fill: #8a8ea3;
+}
+
+.date-picker > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0 10 0 4;
+}
+
+.date-picker > .arrow-button > .arrow {
+    -fx-background-color: #666a80;
+    -fx-padding: 4;
+    -fx-shape: "M0,0v9h9V0H0z M8,8H1V1h7V8z M2,2v2h5V2H2z M2,5v2h5V5H2z";
+}
+
+/* Обычные текстовые поля */
+.text-field {
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+    -fx-border-color: #c9ccdc;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+    -fx-padding: 8 12;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.text-field:focused {
+    -fx-border-color: #4a55d6;
+}
+
+.date-picker-popup .month-year-pane,
+.date-picker-popup {
+    -fx-background-color: white;
+}
+
+.date-picker-popup .day-name-cell,
+.date-picker-popup .date-cell {
+    -fx-text-fill: #1f2340;
 }
