@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.union.backend.dao.ApplicationPeriodRepository;
 import com.union.backend.entity.ApplicationPeriod;
+import com.union.backend.exception.ApplicationPeriodClosedException;
 
 @Service 
 public class ApplicationPeriodServiceImpl implements ApplicationPeriodService {
@@ -20,7 +21,7 @@ public class ApplicationPeriodServiceImpl implements ApplicationPeriodService {
     @Override
     public ApplicationPeriod findByStartDateLessThanEqualAndEndDateGreaterThanEqual(LocalDate today1,
             LocalDate today2) {
-        ApplicationPeriod period = applicationPeriodRepository.findByStartDateLessThanEqualAndEndDateGreaterThanEqual(today1, today2).orElseThrow(()-> new IllegalArgumentException("Сейчас приём заявлений закрыт"));
+        ApplicationPeriod period = applicationPeriodRepository.findByStartDateLessThanEqualAndEndDateGreaterThanEqual(today1, today2).orElseThrow(()-> new ApplicationPeriodClosedException("Сейчас приём заявлений закрыт"));
         return period;
     }
 

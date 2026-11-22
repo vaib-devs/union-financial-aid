@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.union.backend.dao.StudentRepository;
 import com.union.backend.entity.Student;
+import com.union.backend.exception.StudentNotFoundException;
 
 @Service 
 public class StudentServiceImpl implements StudentService {
@@ -25,7 +26,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Student findByStudentNumber(String studentNumber) {
-        Student student = studentRepository.findByStudentNumber(studentNumber).orElseThrow(() -> new IllegalArgumentException("Студент не найден"));
+        Student student = studentRepository.findByStudentNumber(studentNumber).orElseThrow(() -> new StudentNotFoundException("Студент не найден"));
         return student;
     }
 
