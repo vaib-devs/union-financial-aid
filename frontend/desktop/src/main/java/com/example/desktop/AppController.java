@@ -87,8 +87,7 @@ public class AppController {
         table.setPlaceholder(new Label("Заявлений не найдено"));
 
         column(numberCol, a -> {
-            //TODO: оформить label используя волны
-            Label number = new Label("1");
+            Label number = new Label(a.number());
             number.getStyleClass().add("app-number");
             Label date = new Label(a.getCreatedAt().toString());
             date.getStyleClass().add("cell-hint");
@@ -172,8 +171,7 @@ public class AppController {
     }
 
     private void openApplication(Application application) {
-        // TODO: открыть страницу заявления
-        System.out.println("Открыть " + application.getId());
+        Navigator.showReview(List.of(application));
     }
 
     // ---------------- Вкладки статусов ----------------
@@ -252,10 +250,10 @@ public class AppController {
 
     @FXML
     private void onGeneralCheck() {
-        // TODO: запустить серию общей проверки, когда появится API (см. #14)
         Wave wave = waveCombo.getValue();
-        System.out.println("Общая проверка по волне: "
-                + (wave != null ? wave.title() : "—"));
+        if (wave != null) {
+            Navigator.showReview(ApplicationRepository.findForReview(wave));
+        }
     }
 
     private void reloadApplications() {
@@ -271,7 +269,7 @@ public class AppController {
                 .filter(a -> currentStatus == Status.ALL || a.getStatus() == currentStatus)
                 .filter(a -> query.isEmpty()
                         || a.applicant().toLowerCase().contains(query)
-                        || a.Id().toLowerCase().contains(query))
+                        || a.number().toLowerCase().contains(query))
                 .toList();
 
         table.setItems(FXCollections.observableArrayList(filtered));
@@ -336,86 +334,6 @@ public class AppController {
     }
 
     private List<Application> loadApplications(Wave wave) {
-        if (wave.id() != 1) {
-            return List.of();
-        }
-
-        return List.of(
-                new Application(
-                        1L, 1L,
-                        "Мария", "Соколова", "Андреевна",
-                        LocalDate.of(2005, 3, 12),
-                        "+79990000001",
-                        "ЭСБ-241",
-                        "ИЭФ",
-                        "г. Москва, ул. Ленина, 1",
-                        "770100000001",
-                        "40817810000000000001",
-                        Reason.NO_SCHOLARSHIP,
-                        Status.NEW,
-                        OffsetDateTime.parse("2026-10-14T16:45:00+03:00"),
-                        "Проверка не начата"
-                ),
-                new Application(
-                        2L, 1L,
-                        "Иван", "Кузнецов", "Дмитриевич",
-                        LocalDate.of(2004, 8, 25),
-                        "+79990000002",
-                        "УИТ-211",
-                        "ИЖТ",
-                        "г. Москва, ул. Пушкина, 2",
-                        "770100000002",
-                        "40817810000000000002",
-                        Reason.SINGLE_PARENT_FAMILY,
-                        Status.REVIEW,
-                        OffsetDateTime.parse("2026-10-14T15:20:00+03:00"),
-                        "Реквизиты — сверить"
-                ),
-                new Application(
-                        3L, 1L,
-                        "Анна", "Волкова", "Олеговна",
-                        LocalDate.of(2003, 11, 7),
-                        "+79990000003",
-                        "ТУСк-312",
-                        "ИЖТ",
-                        "г. Москва, ул. Чехова, 3",
-                        "770100000003",
-                        "40817810000000000003",
-                        Reason.STUDENT_WITH_CHILD,
-                        Status.NEW,
-                        OffsetDateTime.parse("2026-10-14T11:08:00+03:00"),
-                        "Проверка не начата"
-                ),
-                new Application(
-                        4L, 1L,
-                        "Павел", "Морозов", "Игоревич",
-                        LocalDate.of(2002, 5, 18),
-                        "+79990000004",
-                        "САП-411",
-                        "ИСТИ",
-                        "г. Москва, ул. Гагарина, 4",
-                        "770100000004",
-                        "40817810000000000004",
-                        Reason.STUDENT_WITH_CHILD,
-                        Status.CLARIFY,
-                        OffsetDateTime.parse("2026-10-13T17:36:00+03:00"),
-                        "Ожидается справка о доходах"
-                ),
-                new Application(
-                        5L, 1L,
-                        "Елена", "Петрова", "Викторовна",
-                        LocalDate.of(2004, 1, 22),
-                        "+79990000005",
-                        "ЭЭУ-211",
-                        "ИЭФ",
-                        "г. Москва, ул. Мира, 5",
-                        "770100000005",
-                        "40817810000000000005",
-                        Reason.LARGE_FAMILY,
-                        Status.APPROVED,
-                        OffsetDateTime.parse("2026-10-13T14:52:00+03:00"),
-                        "Сверка завершена"
-                )
-        );
+        return ApplicationRepository.findByWave(wave);
     }
 }
