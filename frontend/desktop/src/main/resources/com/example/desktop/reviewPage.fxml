@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.desktop.ReviewController"
+      prefWidth="1200"
+      prefHeight="760">
+
+    <stylesheets>
+        <URL value="@style.css"/>
+        <URL value="@review.css"/>
+    </stylesheets>
+
+    <!-- Шапка -->
+    <HBox styleClass="header" spacing="30" alignment="CENTER_LEFT">
+        <padding>
+            <Insets top="12" right="24" bottom="12" left="24"/>
+        </padding>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <ImageView fitHeight="40" preserveRatio="true">
+                <Image url="@logo-small.png" requestedHeight="80" preserveRatio="true" smooth="true"/>
+            </ImageView>
+            <Label text="Профсоюз · Помощь" styleClass="logo"/>
+        </HBox>
+    </HBox>
+
+    <!-- Вся страница прокручивается, нижняя панель остаётся на месте -->
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="page-scroll" VBox.vgrow="ALWAYS">
+        <VBox spacing="16">
+            <padding>
+                <Insets top="16" right="24" bottom="24" left="24"/>
+            </padding>
+
+            <!-- Заголовок страницы -->
+            <VBox spacing="6">
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="←  Все заявления" styleClass="crumb-link" onMouseClicked="#onBack"/>
+                    <Label text="/" styleClass="crumb"/>
+                    <Label fx:id="crumbCurrent" styleClass="crumb-current"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="queueTop" styleClass="hint"/>
+                    <Button fx:id="prevTop" text="Предыдущая" styleClass="secondary-button" onAction="#onPrev"/>
+                    <Button fx:id="nextTop" text="Следующая" styleClass="secondary-button" onAction="#onNext"/>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label fx:id="pageTitle" styleClass="review-title"/>
+                    <Label fx:id="statusBadge" styleClass="badge"/>
+                </HBox>
+                <Label fx:id="subtitle" styleClass="review-subtitle"/>
+            </VBox>
+
+            <!-- Две колонки -->
+            <HBox spacing="16" fillHeight="false" alignment="TOP_LEFT">
+
+                <!-- Слева: данные заявления -->
+                <VBox styleClass="card" prefWidth="500" HBox.hgrow="ALWAYS">
+                    <HBox styleClass="card-header" alignment="CENTER_LEFT">
+                        <Label text="Данные заявления" styleClass="card-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="Заполнено заявителем" styleClass="hint"/>
+                    </HBox>
+                    <VBox fx:id="sectionsBox"/>
+                </VBox>
+
+                <!-- Справа: документы -->
+                <VBox styleClass="card" prefWidth="500" HBox.hgrow="ALWAYS">
+                    <HBox styleClass="card-header" alignment="CENTER_LEFT">
+                        <Label text="Документы для сверки" styleClass="card-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="docsSummary" styleClass="hint"/>
+                    </HBox>
+
+                    <GridPane fx:id="docTiles" styleClass="doc-tiles" hgap="8" vgap="8">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50"/>
+                            <ColumnConstraints percentWidth="50"/>
+                        </columnConstraints>
+                    </GridPane>
+
+                    <HBox styleClass="viewer-bar" alignment="CENTER_LEFT" spacing="8">
+                        <Label fx:id="viewerTitle" styleClass="cell-main"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="−" styleClass="zoom-button" onAction="#onZoomOut"/>
+                        <Label fx:id="zoomLabel" styleClass="hint" minWidth="40" alignment="CENTER"/>
+                        <Button text="+" styleClass="zoom-button" onAction="#onZoomIn"/>
+                    </HBox>
+
+                    <ScrollPane fx:id="viewerScroll" fitToWidth="true" styleClass="viewer" prefHeight="520">
+                        <VBox fx:id="viewerImages" alignment="TOP_CENTER" styleClass="viewer-content"/>
+                    </ScrollPane>
+
+                    <VBox styleClass="progress-footer">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label fx:id="progressLabel" styleClass="cell-main"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="progressHint" styleClass="cell-comment-warn"/>
+                        </HBox>
+                        <HBox fx:id="progressBar" spacing="4"/>
+                    </VBox>
+                </VBox>
+            </HBox>
+        </VBox>
+    </ScrollPane>
+
+    <!-- Нижняя панель: комментарий и решение -->
+    <HBox styleClass="bottom-bar" spacing="24" alignment="TOP_LEFT">
+        <VBox spacing="6" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT">
+                <Label text="Комментарий проверяющего" styleClass="card-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Внутренний · не виден заявителю" styleClass="hint"/>
+            </HBox>
+            <TextArea fx:id="commentArea" prefRowCount="2" wrapText="true"
+                      promptText="Добавьте результат сверки или причину уточнения…"/>
+        </VBox>
+
+        <VBox spacing="10" alignment="TOP_RIGHT" minWidth="-Infinity">
+            <HBox spacing="8">
+                <Button fx:id="approveBtn" text="Одобрить" styleClass="primary-button" onAction="#onApprove"/>
+                <Button text="Запросить уточнение" styleClass="secondary-button" onAction="#onClarify"/>
+                <Button text="Отклонить" styleClass="secondary-button" onAction="#onReject"/>
+                <Button fx:id="saveBtn" text="Сохранить" styleClass="secondary-button" onAction="#onSave"/>
+            </HBox>
+            <HBox spacing="8" alignment="CENTER_RIGHT">
+                <Label fx:id="queueBottom" styleClass="hint"/>
+                <Button fx:id="prevBottom" text="Предыдущая" styleClass="secondary-button" onAction="#onPrev"/>
+                <Button fx:id="nextBottom" text="Следующая" styleClass="secondary-button" onAction="#onNext"/>
+            </HBox>
+        </VBox>
+    </HBox>
+</VBox>
