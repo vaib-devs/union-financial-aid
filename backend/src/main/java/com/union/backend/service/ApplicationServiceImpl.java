@@ -2,16 +2,17 @@ package com.union.backend.service;
 
 import java.time.LocalDate;
 import java.util.Objects;
-import java.util.Optional;
+
 
 import org.springframework.stereotype.Service;
 
-import com.union.backend.dao.ApplicationPeriodRepository;
+
 import com.union.backend.dao.ApplicationRepository;
 import com.union.backend.dto.CreateApplicationRequest;
 import com.union.backend.entity.Application;
 import com.union.backend.entity.ApplicationPeriod;
 import com.union.backend.entity.Student;
+import com.union.backend.exception.InvalidUnionCardException;
 
 @Service 
 public class ApplicationServiceImpl implements ApplicationService {
@@ -28,9 +29,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     }
 
-
-
-
+    
     @Override
     public void createApplication(CreateApplicationRequest request) {
         Student student = studentService.findByStudentNumber(request.getStudentNumber());
@@ -43,7 +42,7 @@ throw new IllegalArgumentException("Не прошел проверку");
             if (cardNumber == null
                     || cardNumber.isBlank()
                     || !Objects.equals(cardNumber, student.getUnionCardNumber())) {
-                throw new IllegalArgumentException("Неверный номер профсоюзного билета");
+                throw new InvalidUnionCardException("Неверный номер профсоюзного билета");
             
         }
         
