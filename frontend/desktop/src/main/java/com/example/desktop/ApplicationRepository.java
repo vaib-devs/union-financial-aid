@@ -96,7 +96,18 @@ public final class ApplicationRepository {
     // Черновики комментариев проверяющего: id заявления -> текст
     private static final Map<Long, String> DRAFTS = new HashMap<>();
 
+    // Значения полей, которых пока нет в Application (паспорт, банк и т.п.): "id:ключ" -> значение
+    private static final Map<String, String> OVERRIDES = new HashMap<>();
+
     private ApplicationRepository() {
+    }
+
+    public static String override(long applicationId, String key, String defaultValue) {
+        return OVERRIDES.getOrDefault(applicationId + ":" + key, defaultValue);
+    }
+
+    public static void setOverride(long applicationId, String key, String value) {
+        OVERRIDES.put(applicationId + ":" + key, value);
     }
 
     /** Все заявления выбранной волны (те же объекты, что и в хранилище). */

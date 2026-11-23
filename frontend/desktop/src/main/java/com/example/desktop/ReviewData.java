@@ -1,19 +1,35 @@
 package com.example.desktop;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Данные для страницы проверки: разделы заявления и документы заявителя.
+ * Данные для страницы проверки: разделы заявления, документы заявителя
+ * и применение правок проверяющего.
  *
  * ВРЕМЕННО: паспортные данные, банк и документы пока выдуманы,
- * потому что бэкенд их не отдаёт. Остальное берётся из Application.
- * TODO: заменить на данные из API.
+ * потому что бэкенд их не отдаёт (их правки хранятся в ApplicationRepository).
+ * Остальное берётся из Application. TODO: заменить на данные из API.
  */
 public final class ReviewData {
 
-    /** Поле формы. hint != null означает «требует ручной сверки» (текст подсказки). */
-    public record Field(String label, String value, boolean wide, String hint) {
+    /** TEXT: обычное текстовое поле. REASON: выбор основания из списка. */
+    public enum Kind {
+        TEXT, REASON
+    }
+
+    /**
+     * Поле формы. key нужен, чтобы найти поле при сохранении.
+     * hint != null означает «требует ручной сверки» (текст подсказки).
+     * Для REASON в value лежит имя элемента Reason (например LARGE_FAMILY).
+     */
+    public record Field(String key, String label, String value, Kind kind, boolean wide, String hint) {
         public boolean needsCheck() {
             return hint != null;
         }
@@ -31,6 +47,10 @@ public final class ReviewData {
         }
     }
 
+    /** Ошибка проверки введённого значения: какое поле и что не так. */
+    public record ApplyError(String key, String message) {
+    }
+
     public record DocFile(String name, String resource) {
     }
 
@@ -42,7 +62,8 @@ public final class ReviewData {
     public static final String DOC_BANK = "bank";
     public static final String DOC_BENEFIT = "benefit";
 
-    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd.MM.uuuu")
+            .withResolverStyle(ResolverStyle.STRICT);   // 31.02.2004 считается ошибкой
     private static final String SAMPLES = "/com/example/desktop/samples/";
 
     private ReviewData() {
@@ -57,41 +78,130 @@ public final class ReviewData {
         long id = a.getId();
 
         return List.of(
+                // Основание помощи идёт первым: с него начинается проверка
+                new Section("Основание помощи", DOC_BENEFIT, List.of(
+                        new Field("reason", "Основание", a.getReason().name(), Kind.REASON, true,
+                                checkBenefit
+                                        ? "Подтверждающий документ нужно сверить с указанным основанием."
+                                        : null)
+                )),
                 new Section("Личные данные", DOC_PASSPORT, List.of(
-                        new Field("Фамилия, имя, отчество", a.applicant(), false, null),
-                        new Field("Дата рождения", a.getBirthDay().format(DATE), false, null),
-                        new Field("Контактный номер", phone(a.getPhone()), false, null),
-                        new Field("ИНН", a.getInn(), false, null)
+                        text("name", "Фамилия, имя, отчество", a.applicant().trim(), false, null),
+                        text("birth", "Дата рождения", a.getBirthDay().format(DATE), false, null),
+                        text("phone", "Контактный номер", phone(a.getPhone()), false, null),
+                        text("inn", "ИНН", a.getInn(), false, null)
                 )),
                 new Section("Паспорт и регистрация", DOC_PASSPORT, List.of(
-                        new Field("Адрес регистрации", a.getRegistrationAddress(), true, null),
-                        new Field("Серия и номер паспорта", String.format("00 00 %06d", id), false, null),
-                        new Field("Дата выдачи", "22.05.2025", false, null),
-                        new Field("Кем выдан", "ОМВД России по г. Москве", false, null),
-                        new Field("Код подразделения", String.format("000-%03d", id), false,
+                        text("address", "Адрес регистрации", a.getRegistrationAddress(), true, null),
+                        text("passport", "Серия и номер паспорта",
+                                stub(a, "passport", String.format("00 00 %06d", id)), false, null),
+                        text("issued", "Дата выдачи", stub(a, "issued", "22.05.2025"), false, null),
+                        text("issuedBy", "Кем выдан",
+                                stub(a, "issuedBy", "ОМВД России по г. Москве"), false, null),
+                        text("code", "Код подразделения", stub(a, "code", String.format("000-%03d", id)), false,
                                 checkPassport
                                         ? "Формат кода подразделения требует ручной проверки по документу."
                                         : null)
                 )),
                 new Section("Обучение", DOC_UNION, List.of(
-                        new Field("Институт", a.getInstitute(), true, null),
-                        new Field("Учебная группа", a.getGroup(), false, null),
-                        new Field("Номер студенческого билета", "", false, null)
-                )),
-                new Section("Основание помощи", DOC_BENEFIT, List.of(
-                        new Field("Основание", a.getReason().getDescription(), true,
-                                checkBenefit
-                                        ? "Подтверждающий документ нужно сверить с указанным основанием."
-                                        : null)
+                        text("institute", "Институт", a.getInstitute(), true, null),
+                        text("group", "Учебная группа", a.getGroup(), false, null),
+                        text("ticket", "Номер студенческого билета", stub(a, "ticket", ""), false, null)
                 )),
                 new Section("Банковские реквизиты", DOC_BANK, List.of(
-                        new Field("Банк получателя", "ПАО СБЕРБАНК", true, null),
-                        new Field("Номер счёта", account(a.getBankAccount()), true,
+                        text("bank", "Банк получателя", stub(a, "bank", "ПАО СБЕРБАНК"), true, null),
+                        text("account", "Номер счёта", account(a.getBankAccount()), true,
                                 checkBank
                                         ? "Номер счёта требует ручной сверки с документом — проверьте все цифры."
                                         : null)
                 ))
         );
+    }
+
+    /**
+     * Применяет правки проверяющего: edits это «ключ поля -> новый текст».
+     * Сначала всё проверяется, и только если ошибок нет, значения записываются.
+     * Возвращает null при успехе, иначе описание первой ошибки.
+     */
+    public static ApplyError apply(Application a, Map<String, String> edits) {
+        List<Runnable> actions = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : edits.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue() == null ? "" : entry.getValue().trim();
+
+            switch (key) {
+                case "name" -> {
+                    String[] parts = value.split("\\s+");
+                    if (value.isEmpty() || parts.length < 2) {
+                        return new ApplyError(key, "Укажите фамилию и имя, отчество при наличии");
+                    }
+                    actions.add(() -> {
+                        a.setLastName(parts[0]);
+                        a.setFirstName(parts[1]);
+                        a.setMiddleName(parts.length > 2
+                                ? String.join(" ", Arrays.copyOfRange(parts, 2, parts.length)) : "");
+                    });
+                }
+                case "birth" -> {
+                    try {
+                        LocalDate date = LocalDate.parse(value, DATE);
+                        if (date.isAfter(LocalDate.now())) {
+                            return new ApplyError(key, "Дата рождения не может быть в будущем");
+                        }
+                        actions.add(() -> a.setBirthDay(date));
+                    } catch (DateTimeParseException e) {
+                        return new ApplyError(key, "Дата в формате дд.мм.гггг");
+                    }
+                }
+                case "phone" -> {
+                    String phone = normalizePhone(value);
+                    if (phone == null) {
+                        return new ApplyError(key, "Телефон: 11 цифр, например +7 (999) 000-00-00");
+                    }
+                    actions.add(() -> a.setPhone(phone));
+                }
+                case "inn" -> {
+                    if (!value.matches("\\d{12}")) {
+                        return new ApplyError(key, "ИНН состоит из 12 цифр");
+                    }
+                    actions.add(() -> a.setInn(value));
+                }
+                case "account" -> {
+                    String digits = value.replace(" ", "");
+                    if (!digits.matches("\\d{20}")) {
+                        return new ApplyError(key, "Номер счёта состоит из 20 цифр");
+                    }
+                    actions.add(() -> a.setBankAccount(digits));
+                }
+                case "address" -> {
+                    if (value.isEmpty()) return new ApplyError(key, "Поле не может быть пустым");
+                    actions.add(() -> a.setRegistrationAddress(value));
+                }
+                case "institute" -> {
+                    if (value.isEmpty()) return new ApplyError(key, "Поле не может быть пустым");
+                    actions.add(() -> a.setInstitute(value));
+                }
+                case "group" -> {
+                    if (value.isEmpty()) return new ApplyError(key, "Поле не может быть пустым");
+                    actions.add(() -> a.setGroup(value));
+                }
+                case "reason" -> {
+                    try {
+                        Reason reason = Reason.valueOf(value);
+                        actions.add(() -> a.setReason(reason));
+                    } catch (IllegalArgumentException e) {
+                        return new ApplyError(key, "Выберите основание из списка");
+                    }
+                }
+                // паспорт, банк и т.п.: в Application их пока нет, храним в заглушке
+                default -> actions.add(() -> ApplicationRepository.setOverride(a.getId(), key, value));
+            }
+        }
+
+        actions.forEach(Runnable::run);
+        ApplicationRepository.save(a);
+        return null;
     }
 
     public static List<DocCategory> documents(Application a) {
@@ -112,6 +222,14 @@ public final class ReviewData {
         );
     }
 
+    private static Field text(String key, String label, String value, boolean wide, String hint) {
+        return new Field(key, label, value, Kind.TEXT, wide, hint);
+    }
+
+    private static String stub(Application a, String key, String defaultValue) {
+        return ApplicationRepository.override(a.getId(), key, defaultValue);
+    }
+
     // +79990000001 -> +7 (999) 000-00-01
     private static String phone(String p) {
         if (p != null && p.length() == 12 && p.startsWith("+7")) {
@@ -119,6 +237,18 @@ public final class ReviewData {
                     + "-" + p.substring(8, 10) + "-" + p.substring(10);
         }
         return p == null ? "" : p;
+    }
+
+    // любой ввод -> +79990000001, либо null, если цифр не 11
+    private static String normalizePhone(String input) {
+        String digits = input.replaceAll("\\D", "");
+        if (digits.length() == 11 && (digits.startsWith("7") || digits.startsWith("8"))) {
+            return "+7" + digits.substring(1);
+        }
+        if (digits.length() == 10) {
+            return "+7" + digits;
+        }
+        return null;
     }
 
     // 40817810000000000001 -> 40817 810 0 0000 0000001

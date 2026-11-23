@@ -1,19 +1,27 @@
 package com.example.desktop;
 
 import com.example.desktop.ReviewData.DocCategory;
+import com.example.desktop.ReviewData.ApplyError;
 import com.example.desktop.ReviewData.DocFile;
 import com.example.desktop.ReviewData.Field;
+import com.example.desktop.ReviewData.Kind;
 import com.example.desktop.ReviewData.Section;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
+import javafx.collections.FXCollections;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
@@ -25,6 +33,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
@@ -33,7 +42,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Страница проверки заявления. Работает с очередью заявлений:
@@ -84,7 +96,12 @@ public class ReviewController {
     // Хранятся, пока открыта страница, чтобы не терять их при переходах по очереди.
     private final Map<Long, Set<String>> verified = new HashMap<>();
 
+    // Правки проверяющего, которые ещё не сохранены: id заявления -> (ключ поля -> текст).
+    // Позволяют переходить по очереди, не теряя набранное.
+    private final Map<Long, Map<String, String>> pending = new HashMap<>();
+
     private final List<SectionView> sectionViews = new ArrayList<>();
+    private final Map<String, FieldEditor> editors = new HashMap<>();   // поля текущего заявления
     private final Map<String, Label> tileIcons = new HashMap<>();
     private final ToggleGroup docGroup = new ToggleGroup();
     private final DoubleProperty zoom = new SimpleDoubleProperty(1.0);
@@ -128,17 +145,14 @@ public class ReviewController {
 
     private void show(int newIndex) {
         rememberDraft();
+        stashPending();
         index = newIndex;
         Application a = current();
 
         sections = ReviewData.sections(a);
         documents = ReviewData.documents(a);
 
-        crumbCurrent.setText(a.number());
-        pageTitle.setText("Заявление № " + a.number());
-        subtitle.setText("Материальная помощь / " + a.getReason().getDescription()
-                + " · Подано " + a.getCreatedAt().format(DATE_TIME));
-        applyStatus(a.getStatus());
+        updateHeader(a);
 
         int files = documents.stream().mapToInt(d -> d.files().size()).sum();
         docsSummary.setText(documents.size() + " " + plural(documents.size(), "категория", "категории", "категорий")
@@ -149,14 +163,24 @@ public class ReviewController {
 
         sectionsBox.getChildren().clear();
         sectionViews.clear();
+        editors.clear();
+        Map<String, String> restore = pending.getOrDefault(a.getId(), Map.of());
         for (Section section : sections) {
-            SectionView view = new SectionView(section);
+            SectionView view = new SectionView(section, restore);
             sectionViews.add(view);
             sectionsBox.getChildren().add(view.root);
         }
 
         buildDocTiles();
         refresh();
+    }
+
+    private void updateHeader(Application a) {
+        crumbCurrent.setText(a.number());
+        pageTitle.setText("Заявление № " + a.number());
+        subtitle.setText("Материальная помощь / " + a.getReason().getDescription()
+                + " · Подано " + a.getCreatedAt().format(DATE_TIME));
+        applyStatus(a.getStatus());
     }
 
     private void applyStatus(Status status) {
@@ -223,6 +247,11 @@ public class ReviewController {
                 .filter(s -> s.flagged() > 0 && !isVerified(s))
                 .map(Section::title).toList();
         progressHint.setText(todo.isEmpty() ? "" : String.join(", ", todo) + " — сверить");
+
+        saveBtn.getStyleClass().remove("save-dirty");
+        if (editors.values().stream().anyMatch(FieldEditor::isDirty)) {
+            saveBtn.getStyleClass().add("save-dirty");
+        }
 
         // Одобрить можно только когда все разделы сверены
         approveBtn.setDisable(done < total);
@@ -343,7 +372,7 @@ public class ReviewController {
     @FXML
     private void onBack() {
         rememberDraft();
-        Navigator.showList();
+        leavePage();
     }
 
     // ---------------- Решение проверяющего ----------------
@@ -366,7 +395,11 @@ public class ReviewController {
     @FXML
     private void onSave() {
         rememberDraft();
-        saveBtn.setText("Сохранено ✓");
+        flashSaveButton(saveCurrentEdits() ? "Сохранено ✓" : "Проверьте поля");
+    }
+
+    private void flashSaveButton(String text) {
+        saveBtn.setText(text);
         PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
         pause.setOnFinished(e -> saveBtn.setText("Сохранить"));
         pause.play();
@@ -384,6 +417,11 @@ public class ReviewController {
             return;
         }
 
+        // Решение принимается по тем данным, что видит проверяющий, поэтому правки сохраняем
+        if (!saveCurrentEdits()) {
+            return;
+        }
+
         Application application = current();
         application.setStatus(status);
         application.setComment(text.isEmpty() ? defaultComment : text);
@@ -395,8 +433,107 @@ public class ReviewController {
         if (index < queue.size() - 1) {
             show(index + 1);
         } else {
-            Navigator.showList();   // очередь закончилась
+            leavePage();   // очередь закончилась
         }
+    }
+
+    // ---------------- Правки полей ----------------
+
+    // Запоминает несохранённые правки текущего заявления перед переходом к другому
+    private void stashPending() {
+        if (index < 0 || index >= queue.size()) return;
+        Map<String, String> dirty = dirtyValues();
+        if (dirty.isEmpty()) {
+            pending.remove(current().getId());
+        } else {
+            pending.put(current().getId(), dirty);
+        }
+    }
+
+    private Map<String, String> dirtyValues() {
+        Map<String, String> dirty = new HashMap<>();
+        editors.forEach((key, editor) -> {
+            if (editor.isDirty()) dirty.put(key, editor.text());
+        });
+        return dirty;
+    }
+
+    /** Записывает правки текущего заявления. false, если какое-то поле не прошло проверку. */
+    private boolean saveCurrentEdits() {
+        Map<String, String> dirty = dirtyValues();
+        if (dirty.isEmpty()) {
+            pending.remove(current().getId());
+            return true;
+        }
+
+        ApplyError error = ReviewData.apply(current(), dirty);
+        if (error != null) {
+            FieldEditor editor = editors.get(error.key());
+            if (editor != null) editor.showError(error.message());
+            return false;
+        }
+        pending.remove(current().getId());
+
+        // Данные могли привестись к единому виду (телефон, счёт), поэтому читаем их заново
+        sections = ReviewData.sections(current());
+        for (Section section : sections) {
+            for (Field field : section.fields()) {
+                FieldEditor editor = editors.get(field.key());
+                if (editor != null) editor.markSaved(field);
+            }
+        }
+        updateHeader(current());
+        refresh();
+        return true;
+    }
+
+    private void leavePage() {
+        if (confirmLeave()) {
+            Navigator.showList();
+        }
+    }
+
+    // Если остались несохранённые правки, спрашиваем, что с ними делать
+    private boolean confirmLeave() {
+        stashPending();
+        if (pending.isEmpty()) {
+            return true;
+        }
+
+        ButtonType save = new ButtonType("Сохранить", ButtonBar.ButtonData.YES);
+        ButtonType discard = new ButtonType("Не сохранять", ButtonBar.ButtonData.NO);
+        ButtonType cancel = new ButtonType("Отмена", ButtonBar.ButtonData.CANCEL_CLOSE);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                "Заявлений с несохранёнными правками: " + pending.size() + ". Сохранить их перед выходом?",
+                save, discard, cancel);
+        alert.setTitle("Несохранённые изменения");
+        alert.setHeaderText(null);
+
+        Optional<ButtonType> choice = alert.showAndWait();
+        if (choice.isEmpty() || choice.get() == cancel) return false;
+        if (choice.get() == discard) {
+            pending.clear();
+            return true;
+        }
+        return saveAllPending();
+    }
+
+    private boolean saveAllPending() {
+        for (int i = 0; i < queue.size(); i++) {
+            Application application = queue.get(i);
+            Map<String, String> edits = pending.get(application.getId());
+            if (edits == null) continue;
+
+            ApplyError error = ReviewData.apply(application, edits);
+            if (error != null) {
+                if (i != index) show(i);          // покажем заявление, где ошибка
+                FieldEditor editor = editors.get(error.key());
+                if (editor != null) editor.showError(error.message());
+                return false;
+            }
+            pending.remove(application.getId());
+        }
+        return true;
     }
 
     // ---------------- Разделы слева ----------------
@@ -409,8 +546,9 @@ public class ReviewController {
         private final VBox verify = new VBox(8);
         private final Label message = new Label();
         private final Button button = new Button();
+        private final List<FieldEditor> fields = new ArrayList<>();
 
-        SectionView(Section section) {
+        SectionView(Section section, Map<String, String> restore) {
             this.section = section;
             root.getStyleClass().add("section");
 
@@ -433,78 +571,184 @@ public class ReviewController {
             actions.setAlignment(Pos.CENTER_LEFT);
             verify.getChildren().addAll(message, actions);
 
-            root.getChildren().addAll(head, buildGrid(section.fields()), verify);
+            root.getChildren().addAll(head, buildGrid(restore), verify);
+        }
+
+        // Поля раскладываются в две колонки; wide-поле занимает всю строку
+        private GridPane buildGrid(Map<String, String> restore) {
+            GridPane grid = new GridPane();
+            grid.setHgap(16);
+            grid.setVgap(12);
+            for (int i = 0; i < 2; i++) {
+                ColumnConstraints column = new ColumnConstraints();
+                column.setPercentWidth(50);
+                grid.getColumnConstraints().add(column);
+            }
+
+            int row = 0;
+            int col = 0;
+            for (Field field : section.fields()) {
+                FieldEditor editor = new FieldEditor(field,
+                        restore.getOrDefault(field.key(), field.value()), this::onFieldChanged);
+                fields.add(editor);
+                editors.put(field.key(), editor);
+
+                if (field.wide()) {
+                    if (col != 0) {
+                        row++;
+                        col = 0;
+                    }
+                    grid.add(editor.node, 0, row, 2, 1);
+                    row++;
+                } else {
+                    grid.add(editor.node, col, row);
+                    if (col == 1) {
+                        row++;
+                        col = 0;
+                    } else {
+                        col = 1;
+                    }
+                }
+            }
+            return grid;
+        }
+
+        // Правка данных делает прежнюю отметку «сверено» недействительной
+        private void onFieldChanged() {
+            if (isVerified(section) && fields.stream().anyMatch(FieldEditor::isDirty)) {
+                verifiedSet().remove(section.title());
+            }
+            refresh();
         }
 
         void update() {
             boolean done = isVerified(section);
             long flagged = section.flagged();
+            long dirty = fields.stream().filter(FieldEditor::isDirty).count();
 
             verify.getStyleClass().setAll("verify-box",
                     done ? "verify-ok" : flagged > 0 ? "verify-warn" : "verify-neutral");
-            message.setText(done ? "Данные сверены с документом."
+            message.setText(dirty > 0 ? "Есть несохранённые правки. Сохраните их и сверьте раздел."
+                    : done ? "Данные сверены с документом."
                     : flagged > 0 ? section.hints()
                     : "Сверьте данные раздела с документом.");
             button.setText(done ? "Снять отметку" : "Сверено, верно");
 
-            state.getStyleClass().setAll("section-state", done ? "state-ok" : "state-warn");
-            state.setText(done ? "Сверено ✓"
+            state.getStyleClass().setAll("section-state",
+                    dirty > 0 ? "state-dirty" : done ? "state-ok" : "state-warn");
+            state.setText(dirty > 0 ? "● не сохранено"
+                    : done ? "Сверено ✓"
                     : flagged > 0 ? flagged + " " + plural((int) flagged, "поле", "поля", "полей") + " для сверки"
                     : "");
+        }
+    }
+
+    /** Одно редактируемое поле: подпись, поле ввода (или список) и сообщение об ошибке. */
+    private static final class FieldEditor {
+        private final Field field;
+        private final VBox node;
+        private final Label label = new Label();
+        private final Label error = new Label();
+        private final Control input;
+        private final Supplier<String> read;
+        private final Consumer<String> write;
+        private final Runnable onChange;
+        private String saved;
+
+        FieldEditor(Field field, String initial, Runnable onChange) {
+            this.field = field;
+            this.saved = field.value();
+            this.onChange = onChange;
+
+            if (field.kind() == Kind.REASON) {
+                ComboBox<Reason> box = new ComboBox<>(FXCollections.observableArrayList(Reason.values()));
+                box.setConverter(new StringConverter<>() {
+                    @Override
+                    public String toString(Reason reason) {
+                        return reason == null ? "" : reason.getDescription();
+                    }
+
+                    @Override
+                    public Reason fromString(String text) {
+                        return null;
+                    }
+                });
+                box.setMaxWidth(Double.MAX_VALUE);
+                box.setValue(Reason.valueOf(initial));
+                box.valueProperty().addListener((obs, oldValue, newValue) -> changed());
+                input = box;
+                read = () -> box.getValue() == null ? "" : box.getValue().name();
+                write = value -> box.setValue(Reason.valueOf(value));
+            } else {
+                TextField textField = new TextField(initial);
+                textField.getStyleClass().add("field-input");
+                textField.textProperty().addListener((obs, oldValue, newValue) -> changed());
+                input = textField;
+                read = textField::getText;
+                write = textField::setText;
+            }
+
+            label.getStyleClass().add("field-label");
+            label.setText(field.needsCheck() ? field.label() + " · сверить" : field.label());
+            error.getStyleClass().add("field-error");
+            error.setWrapText(true);
+            error.setManaged(false);
+            error.setVisible(false);
+
+            node = new VBox(4, label, input, error);
+            refreshStyle();
+        }
+
+        String text() {
+            return read.get();
+        }
+
+        boolean isDirty() {
+            return !read.get().equals(saved);
+        }
+
+        void showError(String message) {
+            error.setText(message);
+            error.setManaged(true);
+            error.setVisible(true);
+            refreshStyle();
+        }
+
+        /** Значение записано: оно становится «сохранённым» (возможно, в другом написании). */
+        void markSaved(Field fresh) {
+            saved = fresh.value();
+            write.accept(fresh.value());
+            hideError();
+            refreshStyle();
+        }
+
+        private void changed() {
+            hideError();
+            refreshStyle();
+            onChange.run();
+        }
+
+        private void hideError() {
+            error.setManaged(false);
+            error.setVisible(false);
+        }
+
+        // Цвет поля: ошибка, затем «не сохранено», затем «нужно сверить»
+        private void refreshStyle() {
+            input.getStyleClass().removeAll("value-flag", "value-dirty", "value-error");
+            if (error.isVisible()) {
+                input.getStyleClass().add("value-error");
+            } else if (isDirty()) {
+                input.getStyleClass().add("value-dirty");
+            } else if (field.needsCheck()) {
+                input.getStyleClass().add("value-flag");
+            }
         }
     }
 
     private String docTitle(String docId) {
         return documents.stream().filter(d -> d.id().equals(docId))
                 .map(DocCategory::title).findFirst().orElse("документ");
-    }
-
-    // Поля раскладываются в две колонки; wide-поле занимает всю строку
-    private static GridPane buildGrid(List<Field> fields) {
-        GridPane grid = new GridPane();
-        grid.setHgap(16);
-        grid.setVgap(12);
-        for (int i = 0; i < 2; i++) {
-            ColumnConstraints column = new ColumnConstraints();
-            column.setPercentWidth(50);
-            grid.getColumnConstraints().add(column);
-        }
-
-        int row = 0;
-        int col = 0;
-        for (Field field : fields) {
-            Node cell = fieldNode(field);
-            if (field.wide()) {
-                if (col != 0) {
-                    row++;
-                    col = 0;
-                }
-                grid.add(cell, 0, row, 2, 1);
-                row++;
-            } else {
-                grid.add(cell, col, row);
-                if (col == 1) {
-                    row++;
-                    col = 0;
-                } else {
-                    col = 1;
-                }
-            }
-        }
-        return grid;
-    }
-
-    private static Node fieldNode(Field field) {
-        Label label = new Label(field.needsCheck() ? field.label() + " · сверить" : field.label());
-        label.getStyleClass().add("field-label");
-
-        Label value = new Label(field.value());
-        value.setMaxWidth(Double.MAX_VALUE);
-        value.getStyleClass().add("value-box");
-        if (field.needsCheck()) {
-            value.getStyleClass().add("value-flag");
-        }
-        return new VBox(4, label, value);
     }
 
     private static Region spacer() {

@@ -80,19 +80,48 @@
 .state-warn { -fx-text-fill: #b26a00; }
 .state-ok   { -fx-text-fill: #2e7d4f; }
 
-.value-box {
+.state-dirty { -fx-text-fill: #2f5fd0; }
+
+/* ---------- Поля ввода ----------
+   Цвет поля показывает его состояние:
+   белое: как есть, жёлтое: нужно сверить, синее: изменено и не сохранено, красное: ошибка */
+.field-input {
     -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
     -fx-border-color: #c9ccdc;
     -fx-border-radius: 3;
-    -fx-background-radius: 3;
     -fx-padding: 9 12;
-    -fx-min-height: 38;
     -fx-text-fill: #1f2340;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
-.value-flag {
+.field-input:focused {
+    -fx-border-color: #4a55d6;
+}
+
+.field-input.value-flag,
+.combo-box.value-flag {
     -fx-background-color: #fff6e0;
     -fx-border-color: #e8b84a;
+}
+
+.field-input.value-dirty,
+.combo-box.value-dirty {
+    -fx-background-color: #e4efff;
+    -fx-border-color: #5b8def;
+}
+
+.field-input.value-error,
+.combo-box.value-error {
+    -fx-background-color: #fdeaea;
+    -fx-border-color: #c0392b;
+}
+
+.field-error {
+    -fx-font-size: 12px;
+    -fx-text-fill: #c0392b;
 }
 
 /* Рамка подтверждения внутри раздела */
@@ -157,6 +186,13 @@
 .zoom-button {
     -fx-padding: 3 10;
     -fx-font-size: 14px;
+}
+
+/* В форме есть несохранённые правки */
+.secondary-button.save-dirty {
+    -fx-background-color: #e4efff;
+    -fx-border-color: #5b8def;
+    -fx-text-fill: #2f55a4;
 }
 
 .primary-button:disabled,
