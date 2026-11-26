@@ -3,6 +3,8 @@ package com.union.backend.entity;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,6 +30,7 @@ public class ApplicationPeriod {
     private String description;
     
     @OneToMany(mappedBy = "applicationPeriod")
+    @JsonIgnore 
     private List<Application> applications;
 
     public ApplicationPeriod() {

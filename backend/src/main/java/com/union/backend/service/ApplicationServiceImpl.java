@@ -1,6 +1,7 @@
 package com.union.backend.service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -70,6 +71,13 @@ throw new IllegalArgumentException("Не прошел проверку");
         System.out.println("Добавили заявление");
         
         
+    }
+
+
+    @Override
+    public List<Application> findAllApplication() {
+        List<Application> allApplication = applicationRepository.findAll();
+        return allApplication;
     }
 
 }
