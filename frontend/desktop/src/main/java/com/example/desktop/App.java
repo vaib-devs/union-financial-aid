@@ -1,22 +1,22 @@
 package com.example.desktop;
+
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+
+import java.io.File;
 
 public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        Label label = new Label("Здесь будут данные");
+        Navigator.init(stage);
+        Navigator.showList();
 
-        StackPane root = new StackPane(label);
-
-        Scene scene = new Scene(root, 500, 300);
-
-        stage.setTitle("Проверка заявлений");
-        stage.setScene(scene);
+        stage.setTitle("Заявления на материальную помощь");
+        stage.setMinWidth(1100);
+        stage.setMinHeight(650);
         stage.show();
     }
 

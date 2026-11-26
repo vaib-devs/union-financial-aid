@@ -708,3 +708,5 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,linux,java,web,intellij,vs,maven,node
 .idea/
+
+!frontend/desktop/src/main/resources/**/*.css
